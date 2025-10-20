@@ -1,0 +1,5 @@
+instagrapi
+sqlalchemy
+python-dotenv
+python-telegram-bot
+alembic
