@@ -8,8 +8,9 @@
                 <thead>
                     <tr class="table-dark">
                         <th>اليوزر</th>
-                        <th>النقاط الحالية</th>
+                        <th>النقاط</th>
                         <th>المستوى</th>
+                        <th>الحالة</th>
                         <th style="width: 250px;">إضافة/خصم نقاط</th>
                         <th>الإجراءات</th>
                     </tr>
@@ -25,13 +26,34 @@
                         <td><span class="badge bg-primary fs-6">{{ user.points }}</span></td>
                         <td>{{ user.level }}</td>
                         <td>
+                            {% if user.is_banned %}
+                                <span class="badge bg-danger">محظور</span>
+                            {% else %}
+                                <span class="badge bg-success">نشط</span>
+                            {% endif %}
+                        </td>
+                        <td>
                             <form action="{{ url_for('edit_user') }}" method="post" class="d-flex gap-2">
                                 <input type="hidden" name="user_id" value="{{ user.id }}">
                                 <input type="number" name="add_points" class="form-control form-control-sm" value="0" placeholder="e.g., 5 or -2">
                                 <button type="submit" class="btn btn-sm btn-outline-primary" title="تحديث النقاط"><i class="bi bi-check-lg"></i></button>
                             </form>
                         </td>
-                        <td>
+                        <td class="d-flex gap-2">
+                            {% if user.is_banned %}
+                                <form action="{{ url_for('unban_user', user_id=user.id) }}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="إلغاء حظر المستخدم">
+                                        <i class="bi bi-unlock-fill"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('ban_user', user_id=user.id) }}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="حظر المستخدم">
+                                        <i class="bi bi-slash-circle-fill"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+
                             <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal-{{ user.id }}" title="حذف المستخدم">
                                 <i class="bi bi-trash-fill"></i>
                             </button>

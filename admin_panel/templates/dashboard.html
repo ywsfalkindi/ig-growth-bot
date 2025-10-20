@@ -1,42 +1,103 @@
 {% extends "base.html" %}
 {% block content %}
 <h2 class="mb-4">مرحباً بك في لوحة تحكم البوت الخاص بـ <span class="text-primary">{{ bot_username }}</span></h2>
-<div class="row g-4">
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title">إجمالي المستخدمين</h5>
+                    <h2 class="fw-bold">{{ total_users }}</h2>
+                </div>
+                <i class="bi bi-people-fill icon"></i>
+            </div>
+        </div>
     </div>
-<hr class="my-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title">النقاط المتداولة</h5>
+                    <h2 class="fw-bold">{{ total_points }}</h2>
+                </div>
+                <i class="bi bi-coin icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title">النشطون اليوم</h5>
+                    <h2 class="fw-bold">{{ active_users_today }}</h2>
+                </div>
+                <i class="bi bi-activity icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title">متوسط النقاط</h5>
+                    <h2 class="fw-bold">{{ avg_points_per_user }}</h2>
+                </div>
+                <i class="bi bi-pie-chart-fill icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card"><div class="card-body">
-            <h5 class="card-title">المستخدمون الجدد</h5>
-            <img src="data:image/png;base64,{{ users_chart }}" class="img-fluid">
+        <div class="card shadow-sm"><div class="card-body">
+            <h5 class="card-title"><i class="bi bi-person-plus-fill text-primary"></i> المستخدمون الجدد (آخر 7 أيام)</h5>
+            {% if users_chart %}
+                <img src="data:image/png;base64,{{ users_chart }}" class="img-fluid">
+            {% else %}
+                <p class="text-center text-muted mt-3">لا توجد بيانات كافية لعرض الرسم البياني.</p>
+            {% endif %}
         </div></div>
     </div>
     <div class="col-lg-6">
-        <div class="card"><div class="card-body">
-            <h5 class="card-title">الطلبات الجديدة</h5>
-            <img src="data:image/png;base64,{{ orders_chart }}" class="img-fluid">
+        <div class="card shadow-sm"><div class="card-body">
+            <h5 class="card-title"><i class="bi bi-card-checklist text-success"></i> الطلبات الجديدة (آخر 7 أيام)</h5>
+            {% if orders_chart %}
+                <img src="data:image/png;base64,{{ orders_chart }}" class="img-fluid">
+            {% else %}
+                <p class="text-center text-muted mt-3">لا توجد بيانات كافية لعرض الرسم البياني.</p>
+            {% endif %}
         </div></div>
     </div>
 </div>
 <hr class="my-4">
-<h3><i class="bi bi-clock-history"></i> سجل آخر الأحداث</h3>
-<table class="table table-sm table-striped">
-    <thead><tr><th>الوقت</th><th>المستخدم</th><th>التغيير</th><th>السبب</th></tr></thead>
-    <tbody>
-    {% for log in latest_logs %}
-        <tr>
-            <td>{{ log.timestamp.strftime('%H:%M:%S') }}</td>
-            <td>{{ log.user.username }}</td>
-            <td>
-                {% if log.points_change > 0 %}
-                    <span class="badge bg-success">+{{ log.points_change }}</span>
-                {% else %}
-                    <span class="badge bg-danger">{{ log.points_change }}</span>
-                {% endif %}
-            </td>
-            <td>{{ log.reason }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> سجل آخر الأحداث</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover">
+                <thead><tr><th>الوقت</th><th>المستخدم</th><th>التغيير</th><th>السبب</th></tr></thead>
+                <tbody>
+                {% for log in latest_logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td><a href="{{ url_for('user_profile', user_id=log.user.id) }}">{{ log.user.username }}</a></td>
+                        <td>
+                            {% if log.points_change > 0 %}
+                                <span class="badge bg-success">+{{ log.points_change }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ log.points_change }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.reason }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

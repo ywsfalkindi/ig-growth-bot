@@ -15,7 +15,8 @@ class User(Base):
     streak = Column(Integer, default=0)
     referral_code = Column(String, unique=True, index=True, nullable=True)
     referred_by_user_id = Column(String, index=True, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow) # <<-- حقل جديد لتتبع تاريخ التسجيل
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    is_banned = Column(Boolean, default=False) # <<-- ✨ الحقل الجديد
 
     # --- ✨ علاقات جديدة لعرض البيانات ---
     orders = relationship("Order", back_populates="owner")

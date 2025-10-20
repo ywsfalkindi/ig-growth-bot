@@ -43,13 +43,14 @@
             border: none;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
         .stat-card .icon {
-            font-size: 2rem;
+            font-size: 3rem;
             opacity: 0.3;
         }
     </style>
@@ -65,15 +66,20 @@
                 </a>
             </li>
             <li class="nav-item">
-    <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
-        <i class="bi bi-gear-fill"></i> الإعدادات العامة
-    </a>
-</li>
-<li class="nav-item">
-    <a href="{{ url_for('gift_points') }}" class="nav-link {% if request.endpoint == 'gift_points' %}active{% endif %}">
-        <i class="bi bi-gift-fill"></i> إرسال هدية
-    </a>
-</li>
+                <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> الإعدادات العامة
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('bot_messages') }}" class="nav-link {% if request.endpoint == 'bot_messages' %}active{% endif %}">
+                    <i class="bi bi-chat-left-text-fill"></i> رسائل البوت
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('gift_points') }}" class="nav-link {% if request.endpoint == 'gift_points' %}active{% endif %}">
+                    <i class="bi bi-gift-fill"></i> إرسال هدية
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{{ url_for('manage_users') }}" class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}">
                     <i class="bi bi-people-fill"></i> إدارة المستخدمين
