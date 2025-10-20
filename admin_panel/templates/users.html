@@ -1,28 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>إدارة المستخدمين ({{ users|length }})</h2>
-<table class="table table-striped align-middle">
-  <thead><tr><th>اليوزر</th><th>النقاط الحالية</th><th>إضافة/خصم نقاط</th><th>المستوى</th><th>الإجراءات</th></tr></thead>
-  <tbody>
-  {% for user in users %}
-    <tr>
-      <td>{{ user.username }}</td>
-      <td><strong>{{ user.points }}</strong></td>
-      <form action="{{ url_for('edit_user') }}" method="post" class="d-inline">
-        <input type="hidden" name="user_id" value="{{ user.id }}">
-        <td style="width: 200px;">
-          <input type="number" name="add_points" class="form-control form-control-sm" value="0" placeholder="e.g., 5 or -2">
-        </td>
-        <td>{{ user.level }}</td>
-        <td class="d-flex gap-2">
-          <button type="submit" class="btn btn-sm btn-primary">تحديث النقاط</button>
-      </form>
-      <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.');">
-        <button type="submit" class="btn btn-sm btn-danger">حذف</button>
-      </form>
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<h2 class="mb-4">إدارة المستخدمين ({{ users|length }})</h2>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr class="table-dark">
+                    <th>اليوزر</th>
+                    <th>النقاط الحالية</th>
+                    <th style="width: 250px;">إضافة/خصم نقاط</th>
+                    <th>المستوى</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td><span class="badge bg-primary fs-6">{{ user.points }}</span></td>
+                    <td>
+                        <form action="{{ url_for('edit_user') }}" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <input type="number" name="add_points" class="form-control form-control-sm" value="0" placeholder="e.g., 5 or -2">
+                            <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check-lg"></i></button>
+                        </form>
+                    </td>
+                    <td>{{ user.level }}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal-{{ user.id }}">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+
+                        <div class="modal fade" id="deleteUserModal-{{ user.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">تأكيد الحذف</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>هل أنت متأكد من حذف المستخدم <strong>{{ user.username }}</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                        <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post">
+                                            <button type="submit" class="btn btn-danger">نعم، قم بالحذف</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
