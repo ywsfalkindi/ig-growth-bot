@@ -14,13 +14,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # --- استيرادات ---
 from database.database import SessionLocal
-from database.models import User, Order, Code
-from bot.instagram_client import InstagramClient
+from database.models import User, Order, Code, PointLog
+from bot.instagram_client import InstagramClient # <<-- هذا الاستيراد مهم جدًا
 from config import IG_USERNAME, IG_PASSWORD, ADMIN_PASSWORD, BASE_DIR
 
-# --- ✨ استيرادات جديدة للرسوم البيانية ---
 import matplotlib
-matplotlib.use('Agg') # وضع غير تفاعلي للعمل على الخادم
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sqlalchemy import func
 
@@ -37,6 +36,7 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -46,54 +46,83 @@ def login():
         else:
             flash("كلمة المرور غير صحيحة!", "danger")
     return render_template('login.html')
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
 
-# --- ✨ دالة لإنشاء الرسوم البيانية ---
+# ... (دالة إنشاء الرسوم البيانية لا تتغير)
 def create_chart(data, title, x_label, y_label):
     dates = [item[0] for item in data]
     counts = [item[1] for item in data]
-    
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(dates, counts, marker='o', linestyle='-', color='b')
     ax.set_title(title, fontsize=16)
     ax.set_xlabel(x_label, fontsize=12)
     ax.set_ylabel(y_label, fontsize=12)
     ax.grid(True)
-    fig.autofmt_xdate() # تنسيق التواريخ بشكل جميل
-
-    # حفظ الصورة في الذاكرة بدلاً من ملف
+    fig.autofmt_xdate()
     buf = BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
-    # تحويل الصورة إلى نص يمكن عرضه في HTML
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
-# --- صفحات لوحة التحكم المطورة ---
+# --- ✨ دالة إرسال الهدية المطورة ---
+@app.route('/gift', methods=['GET', 'POST'])
+@login_required
+def gift_points():
+    db = SessionLocal()
+    if request.method == 'POST':
+        username = request.form.get('username')
+        points = int(request.form.get('points', 0))
+        reason = request.form.get('reason', 'هدية من المدير')
+        
+        user = db.query(User).filter(User.username == username).first()
+        if user:
+            # تحديث قاعدة البيانات
+            user.points += points
+            log = PointLog(user_id=user.id, points_change=points, reason=reason)
+            db.add(log)
+            db.commit()
+            flash(f"تم إرسال {points} نقطة بنجاح إلى المستخدم {username}.", "success")
 
+            # --- 🎁 الجزء الجديد: إرسال رسالة للمستخدم ---
+            try:
+                # نقوم بتسجيل الدخول كبوت لإرسال الرسالة
+                client = InstagramClient(IG_USERNAME, IG_PASSWORD)
+                gift_message = f"🎁 هدية من المدير!\n\nلقد حصلت على {points} نقاط.\nالسبب: {reason}"
+                client.send_direct_message(user.ig_user_id, gift_message)
+                flash("تم إعلام المستخدم بالهدية عبر رسالة خاصة.", "info")
+            except Exception as e:
+                flash(f"حدث خطأ أثناء إعلام المستخدم: {e}", "danger")
+            # --- نهاية الجزء الجديد ---
+
+        else:
+            flash("لم يتم العثور على مستخدم بهذا اليوزر.", "danger")
+        
+        db.close() # تأكد من إغلاق الاتصال بقاعدة البيانات
+        return redirect(url_for('gift_points'))
+        
+    users = db.query(User).all()
+    db.close()
+    return render_template('gift.html', users=users)
+
+# ... (بقية الصفحات والإجراءات تبقى كما هي دون أي تغيير)
 @app.route('/')
 @login_required
 def dashboard():
     db = SessionLocal()
-    # ... (الإحصائيات الأساسية)
     total_users = db.query(User).count()
     pending_orders = db.query(Order).filter(Order.is_completed == False).count()
     completed_orders = db.query(Order).filter(Order.is_completed == True).count()
     unused_codes = db.query(Code).filter(Code.is_used == False).count()
-
-    # ✨ بيانات للرسوم البيانية (آخر 7 أيام)
     seven_days_ago = datetime.utcnow().date() - timedelta(days=7)
-    
-    # رسم بياني للطلبات الجديدة
-    orders_data = db.query(func.date(Order.created_at), func.count(Order.id))\
-                    .filter(func.date(Order.created_at) >= seven_days_ago)\
-                    .group_by(func.date(Order.created_at))\
-                    .order_by(func.date(Order.created_at)).all()
-    
+    orders_data = db.query(func.date(Order.created_at), func.count(Order.id)).filter(func.date(Order.created_at) >= seven_days_ago).group_by(func.date(Order.created_at)).order_by(func.date(Order.created_at)).all()
     orders_chart = create_chart(orders_data, 'الطلبات الجديدة في آخر 7 أيام', 'التاريخ', 'عدد الطلبات')
-
+    users_data = db.query(func.date(User.created_at), func.count(User.id)).filter(func.date(User.created_at) >= seven_days_ago).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
+    users_chart = create_chart(users_data, 'المستخدمون الجدد في آخر 7 أيام', 'التاريخ', 'عدد المستخدمين')
+    latest_logs = db.query(PointLog).order_by(PointLog.timestamp.desc()).limit(10).all()
     db.close()
     return render_template('dashboard.html', 
                            total_users=total_users, 
@@ -101,39 +130,40 @@ def dashboard():
                            completed_orders=completed_orders,
                            unused_codes=unused_codes,
                            bot_username=IG_USERNAME,
-                           orders_chart=orders_chart)
+                           orders_chart=orders_chart,
+                           users_chart=users_chart,
+                           latest_logs=latest_logs)
 
-# --- ✨ صفحة الإعدادات العامة الجديدة ---
+@app.route('/user/<int:user_id>')
+@login_required
+def user_profile(user_id):
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first_or_404()
+    db.close()
+    return render_template('user_profile.html', user=user)
+
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     if request.method == 'POST':
         with open(SETTINGS_FILE, 'r') as f:
             settings_data = json.load(f)
-        
         settings_data['BOT_PAUSED'] = 'BOT_PAUSED' in request.form
         settings_data['POINTS_PER_TASK'] = int(request.form.get('POINTS_PER_TASK', 1))
         settings_data['FOLLOWERS_PER_POINT'] = int(request.form.get('FOLLOWERS_PER_POINT', 50))
         settings_data['MYSTERY_BOX_COST'] = int(request.form.get('MYSTERY_BOX_COST', 2))
         settings_data['TASKS_FOR_LEVEL_UP'] = int(request.form.get('TASKS_FOR_LEVEL_UP', 5))
-        
         with open(SETTINGS_FILE, 'w') as f:
             json.dump(settings_data, f, indent=4)
-        
         flash("تم حفظ الإعدادات بنجاح!", "success")
         return redirect(url_for('settings'))
-
     with open(SETTINGS_FILE, 'r') as f:
         current_settings = json.load(f)
-        
     return render_template('settings.html', settings=current_settings)
 
-
-# ... (بقية الصفحات والإجراءات تبقى كما هي)
 @app.route('/users')
 @login_required
 def manage_users():
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     users = db.query(User).order_by(User.points.desc()).all()
     db.close()
@@ -142,7 +172,6 @@ def manage_users():
 @app.route('/orders')
 @login_required
 def manage_orders():
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     orders = db.query(Order).order_by(Order.created_at.desc()).all()
     db.close()
@@ -151,7 +180,6 @@ def manage_orders():
 @app.route('/codes', methods=['GET', 'POST'])
 @login_required
 def manage_codes():
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     if request.method == 'POST':
         try:
@@ -176,7 +204,6 @@ def manage_codes():
 @app.route('/broadcast', methods=['GET', 'POST'])
 @login_required
 def broadcast_message():
-    # ... (لا تغيير هنا)
     if request.method == 'POST':
         message = request.form.get('message')
         if not message:
@@ -197,15 +224,17 @@ def broadcast_message():
 @app.route('/user/edit', methods=['POST'])
 @login_required
 def edit_user():
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     user_id = request.form.get('user_id')
-    points_to_add = request.form.get('add_points', '0')
+    points_to_add = int(request.form.get('add_points', '0'))
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         try:
-            user.points += int(points_to_add)
+            user.points += points_to_add
             if user.points < 0: user.points = 0
+            reason = f"تعديل يدوي من المدير: {'إضافة' if points_to_add >= 0 else 'خصم'} {abs(points_to_add)} نقاط"
+            log = PointLog(user_id=user.id, points_change=points_to_add, reason=reason)
+            db.add(log)
             db.commit()
             flash(f"تم تحديث نقاط المستخدم {user.username} بنجاح.", "success")
         except ValueError:
@@ -216,7 +245,6 @@ def edit_user():
 @app.route('/user/delete/<int:user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     if user:
@@ -229,7 +257,6 @@ def delete_user(user_id):
 @app.route('/order/complete/<int:order_id>', methods=['POST'])
 @login_required
 def complete_order(order_id):
-    # ... (لا تغيير هنا)
     db = SessionLocal()
     order = db.query(Order).filter(Order.id == order_id).first()
     if order:

@@ -25,6 +25,11 @@
                             <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check-lg"></i></button>
                         </form>
                     </td>
+                    <td>
+    <a href="{{ url_for('user_profile', user_id=user.id) }}">
+        <strong>{{ user.username }}</strong> <i class="bi bi-box-arrow-up-right"></i>
+    </a>
+</td>
                     <td>{{ user.level }}</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal-{{ user.id }}">
