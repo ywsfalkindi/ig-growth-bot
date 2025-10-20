@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>مرحباً بك في لوحة تحكم البوت الخاص بـ <span class="text-primary">{{ bot_username }}</span></h2>
+<hr>
+<div class="row">
+  <div class="col-md-3"><div class="card text-center p-3"><h4 class="card-title">إجمالي المستخدمين</h4><h3>{{ total_users }}</h3></div></div>
+  <div class="col-md-3"><div class="card text-center p-3 bg-warning"><h4 class="card-title">الطلبات المعلقة</h4><h3>{{ pending_orders }}</h3></div></div>
+  <div class="col-md-3"><div class="card text-center p-3 bg-success text-white"><h4 class="card-title">الطلبات المكتملة</h4><h3>{{ completed_orders }}</h3></div></div>
+  <div class="col-md-3"><div class="card text-center p-3"><h4 class="card-title">الأكواد المتاحة</h4><h3>{{ unused_codes }}</h3></div></div>
+</div>
+{% endblock %}

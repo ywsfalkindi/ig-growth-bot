@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>إدارة الأكواد ({{ codes|length }})</h2>
+  <form action="{{ url_for('manage_codes') }}" method="post" class="d-flex gap-2">
+    <input type="number" name="count" class="form-control" value="50" style="width: 100px;">
+    <button type="submit" class="btn btn-success">إنشاء أكواد جديدة</button>
+  </form>
+</div>
+<table class="table table-striped">
+  <thead><tr><th>الكود</th><th>الحالة</th></tr></thead>
+  <tbody>
+  {% for code in codes %}
+    <tr>
+      <td><code>{{ code.code_value }}</code></td>
+      <td>
+        {% if code.is_used %}
+          <span class="badge bg-secondary">مستخدم</span>
+        {% else %}
+          <span class="badge bg-success">متاح</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

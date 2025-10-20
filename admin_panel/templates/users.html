@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>إدارة المستخدمين ({{ users|length }})</h2>
+<table class="table table-striped align-middle">
+  <thead><tr><th>اليوزر</th><th>النقاط الحالية</th><th>إضافة/خصم نقاط</th><th>المستوى</th><th>الإجراءات</th></tr></thead>
+  <tbody>
+  {% for user in users %}
+    <tr>
+      <td>{{ user.username }}</td>
+      <td><strong>{{ user.points }}</strong></td>
+      <form action="{{ url_for('edit_user') }}" method="post" class="d-inline">
+        <input type="hidden" name="user_id" value="{{ user.id }}">
+        <td style="width: 200px;">
+          <input type="number" name="add_points" class="form-control form-control-sm" value="0" placeholder="e.g., 5 or -2">
+        </td>
+        <td>{{ user.level }}</td>
+        <td class="d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary">تحديث النقاط</button>
+      </form>
+      <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.');">
+        <button type="submit" class="btn btn-sm btn-danger">حذف</button>
+      </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
