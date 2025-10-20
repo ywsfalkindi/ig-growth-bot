@@ -1,6 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="mb-4"><i class="bi bi-people-fill"></i> إدارة المستخدمين ({{ users|length }})</h2>
+<h2 class="mb-4"><i class="bi bi-people-fill"></i> إدارة المستخدمين ({{ user_count }})</h2>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('manage_users') }}" class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="ابحث عن يوزر..." value="{{ search_query or '' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>كل الحالات</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>نشط</option>
+                    <option value="banned" {% if status_filter == 'banned' %}selected{% endif %}>محظور</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">تطبيق</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="table-responsive">
@@ -19,8 +43,8 @@
                 {% for user in users %}
                     <tr>
                         <td>
-                            <a href="{{ url_for('user_profile', user_id=user.id) }}" class="text-decoration-none">
-                                <strong>{{ user.username }}</strong> <i class="bi bi-box-arrow-up-right"></i>
+                            <a href="{{ url_for('user_profile', user_id=user.id) }}" class="text-decoration-none fw-bold">
+                                {{ user.username }} <i class="bi bi-box-arrow-up-right small"></i>
                             </a>
                         </td>
                         <td><span class="badge bg-primary fs-6">{{ user.points }}</span></td>
@@ -66,7 +90,7 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <p>هل أنت متأكد من حذف المستخدم <strong>{{ user.username }}</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                                            <p>هل أنت متأكد من حذف المستخدم <strong>{{ user.username }}</strong>؟ سيتم حذف كل بياناته ولا يمكن التراجع عن هذا الإجراء.</p>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>

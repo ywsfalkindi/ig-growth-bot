@@ -21,8 +21,8 @@ from config import IG_USERNAME, IG_PASSWORD, ADMIN_PASSWORD, BASE_DIR
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload # <<-- ✨ 1. تمت إضافة هذا السطر
+from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload
 
 # --- إعدادات Flask (لا تغيير هنا) ---
 app = Flask(__name__)
@@ -73,38 +73,38 @@ def create_chart(data, title, x_label, y_label):
 def dashboard():
     db = SessionLocal()
     
-    # --- ✨ إحصائيات جديدة ---
+    # --- إحصائيات ---
     total_users = db.query(User).count()
     total_points = db.query(func.sum(User.points)).scalar() or 0
     today_date = datetime.utcnow().date()
     active_users_today = db.query(PointLog).filter(func.date(PointLog.timestamp) == today_date).distinct(PointLog.user_id).count()
     avg_points_per_user = round(total_points / total_users if total_users > 0 else 0, 2)
-    
     pending_orders = db.query(Order).filter(Order.is_completed == False).count()
     completed_orders = db.query(Order).filter(Order.is_completed == True).count()
     unused_codes = db.query(Code).filter(Code.is_used == False).count()
+    
+    # --- رسوم بيانية ---
     seven_days_ago = datetime.utcnow().date() - timedelta(days=7)
     orders_data = db.query(func.date(Order.created_at), func.count(Order.id)).filter(func.date(Order.created_at) >= seven_days_ago).group_by(func.date(Order.created_at)).order_by(func.date(Order.created_at)).all()
     orders_chart = create_chart(orders_data, 'الطلبات الجديدة في آخر 7 أيام', 'التاريخ', 'عدد الطلبات')
     users_data = db.query(func.date(User.created_at), func.count(User.id)).filter(func.date(User.created_at) >= seven_days_ago).group_by(func.date(User.created_at)).order_by(func.date(User.created_at)).all()
     users_chart = create_chart(users_data, 'المستخدمون الجدد في آخر 7 أيام', 'التاريخ', 'عدد المستخدمين')
     
-    # <<-- ✨ 2. تم تعديل هذا السطر ليقوم بتحميل بيانات المستخدم مع السجل مباشرة ---
     latest_logs = db.query(PointLog).options(joinedload(PointLog.user)).order_by(PointLog.timestamp.desc()).limit(10).all()
     
     db.close()
     return render_template('dashboard.html', 
                            total_users=total_users, 
+                           total_points=total_points, 
+                           active_users_today=active_users_today, 
+                           avg_points_per_user=avg_points_per_user,
                            pending_orders=pending_orders,
                            completed_orders=completed_orders,
                            unused_codes=unused_codes,
                            bot_username=IG_USERNAME,
                            orders_chart=orders_chart,
                            users_chart=users_chart,
-                           latest_logs=latest_logs,
-                           total_points=total_points, 
-                           active_users_today=active_users_today, 
-                           avg_points_per_user=avg_points_per_user
+                           latest_logs=latest_logs
                            )
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -152,9 +152,27 @@ def bot_messages():
 @login_required
 def manage_users():
     db = SessionLocal()
-    users = db.query(User).order_by(User.points.desc()).all()
+    search_query = request.args.get('search', '')
+    status_filter = request.args.get('status', 'all')
+    
+    query = db.query(User)
+    
+    if search_query:
+        query = query.filter(User.username.ilike(f'%{search_query}%'))
+    
+    if status_filter == 'banned':
+        query = query.filter(User.is_banned == True)
+    elif status_filter == 'active':
+        query = query.filter(User.is_banned == False)
+        
+    users = query.order_by(User.points.desc()).all()
+    user_count = len(users)
     db.close()
-    return render_template('users.html', users=users)
+    return render_template('users.html', 
+                           users=users, 
+                           user_count=user_count,
+                           search_query=search_query, 
+                           status_filter=status_filter)
 
 @app.route('/user/ban/<int:user_id>', methods=['POST'])
 @login_required
@@ -166,7 +184,7 @@ def ban_user(user_id):
         db.commit()
         flash(f"تم حظر المستخدم {user.username} بنجاح.", "warning")
     db.close()
-    return redirect(url_for('manage_users'))
+    return redirect(request.referrer or url_for('manage_users'))
 
 @app.route('/user/unban/<int:user_id>', methods=['POST'])
 @login_required
@@ -178,7 +196,7 @@ def unban_user(user_id):
         db.commit()
         flash(f"تم إلغاء حظر المستخدم {user.username} بنجاح.", "success")
     db.close()
-    return redirect(url_for('manage_users'))
+    return redirect(request.referrer or url_for('manage_users'))
 
 @app.route('/gift', methods=['GET', 'POST'])
 @login_required
@@ -215,17 +233,35 @@ def gift_points():
 @login_required
 def user_profile(user_id):
     db = SessionLocal()
-    user = db.query(User).filter(User.id == user_id).first_or_404()
+    user = db.query(User).options(joinedload(User.point_logs)).filter(User.id == user_id).first_or_404()
+    
+    # Get referrer
+    referrer = None
+    if user.referred_by_user_id:
+        referrer = db.query(User).filter(User.ig_user_id == user.referred_by_user_id).first()
+        
+    # Get list of referees
+    referees = db.query(User).filter(User.referred_by_user_id == user.ig_user_id).all()
+    
     db.close()
-    return render_template('user_profile.html', user=user)
+    return render_template('user_profile.html', user=user, referrer=referrer, referees=referees)
 
 @app.route('/orders')
 @login_required
 def manage_orders():
     db = SessionLocal()
-    orders = db.query(Order).order_by(Order.created_at.desc()).all()
+    status_filter = request.args.get('status', 'all')
+    
+    query = db.query(Order).options(joinedload(Order.owner))
+    
+    if status_filter == 'pending':
+        query = query.filter(Order.is_completed == False)
+    elif status_filter == 'completed':
+        query = query.filter(Order.is_completed == True)
+        
+    orders = query.order_by(Order.created_at.desc()).all()
     db.close()
-    return render_template('orders.html', orders=orders)
+    return render_template('orders.html', orders=orders, status_filter=status_filter)
 
 @app.route('/codes', methods=['GET', 'POST'])
 @login_required
@@ -247,6 +283,8 @@ def manage_codes():
             flash(f"تم إنشاء {len(new_codes_to_add)} كود جديد بنجاح!", "success")
         except ValueError:
             flash("الرجاء إدخال رقم صحيح.", "danger")
+        return redirect(url_for('manage_codes'))
+        
     codes = db.query(Code).order_by(Code.id.desc()).all()
     db.close()
     return render_template('codes.html', codes=codes)
@@ -262,13 +300,15 @@ def broadcast_message():
         try:
             client = InstagramClient(IG_USERNAME, IG_PASSWORD)
             db = SessionLocal()
-            users = db.query(User).all()
+            users = db.query(User).filter(User.is_banned == False).all() # Send only to non-banned users
             user_ids = [user.ig_user_id for user in users]
+            # Sending to a large number of users might require batching, but for now this is fine.
             client.cl.direct_send(message, user_ids=user_ids)
             db.close()
             flash(f"تم إرسال الرسالة بنجاح إلى {len(user_ids)} مستخدم.", "success")
         except Exception as e:
             flash(f"حدث خطأ أثناء إرسال الرسالة: {e}", "danger")
+        return redirect(url_for('broadcast_message'))
     return render_template('broadcast.html')
 
 @app.route('/user/edit', methods=['POST'])
@@ -290,7 +330,7 @@ def edit_user():
         except ValueError:
             flash("الرجاء إدخال رقم صحيح للنقاط.", "danger")
     db.close()
-    return redirect(url_for('manage_users'))
+    return redirect(request.referrer or url_for('manage_users'))
 
 @app.route('/user/delete/<int:user_id>', methods=['POST'])
 @login_required
@@ -314,7 +354,7 @@ def complete_order(order_id):
         db.commit()
         flash(f"تم تحديد طلب المستخدم {order.username_to_follow} كمكتمل.", "success")
     db.close()
-    return redirect(url_for('manage_orders'))
+    return redirect(request.referrer or url_for('manage_orders'))
 
 
 if __name__ == '__main__':

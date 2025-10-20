@@ -1,39 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
+<a href="{{ url_for('manage_users') }}" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-right"></i> العودة لإدارة المستخدمين</a>
 <h2 class="mb-4">الملف الشخصي للمستخدم: <span class="text-primary">{{ user.username }}</span></h2>
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title">المعلومات الأساسية</h5>
-                <p><strong>النقاط:</strong> {{ user.points }}</p>
-                <p><strong>المستوى:</strong> {{ user.level }}</p>
-                <p><strong>تاريخ الانضمام:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+                <h5 class="card-title mb-3"><i class="bi bi-person-circle text-primary"></i> المعلومات الأساسية</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><strong>النقاط:</strong> <span>{{ user.points }} 🪙</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>المستوى:</strong> <span>{{ user.level }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>تاريخ الانضمام:</strong> <span>{{ user.created_at.strftime('%Y-%m-%d') }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>الحالة:</strong>
+                        {% if user.is_banned %}
+                            <span class="badge bg-danger">محظور</span>
+                        {% else %}
+                            <span class="badge bg-success">نشط</span>
+                        {% endif %}
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
-    <div class="col-md-8">
-        <div class="card">
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title">سجل حركة النقاط</h5>
-                <table class="table table-sm">
-                    <thead><tr><th>الوقت</th><th>التغيير</th><th>السبب</th></tr></thead>
-                    <tbody>
-                    {% for log in user.point_logs|reverse %}
-                        <tr>
-                            <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td>
-                                {% if log.points_change > 0 %}
-                                    <span class="badge bg-success">+{{ log.points_change }}</span>
-                                {% else %}
-                                    <span class="badge bg-danger">{{ log.points_change }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ log.reason }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                <h5 class="card-title mb-3"><i class="bi bi-people-fill text-success"></i> نظام الدعوات</h5>
+                <div class="alert alert-secondary">
+                    <strong>كود الدعوة الخاص به:</strong> <code>{{ user.referral_code }}</code>
+                </div>
+                <h6><i class="bi bi-person-check-fill"></i> تمت دعوته بواسطة:</h6>
+                {% if referrer %}
+                    <p><a href="{{ url_for('user_profile', user_id=referrer.id) }}">{{ referrer.username }}</a></p>
+                {% else %}
+                    <p class="text-muted">لا يوجد (انضم بدون كود دعوة).</p>
+                {% endif %}
+                <hr>
+                <h6><i class="bi bi-person-plus-fill"></i> المستخدمون الذين دعاهم ({{ referees|length }}):</h6>
+                {% if referees %}
+                    <ul class="list-group">
+                        {% for referee in referees %}
+                            <li class="list-group-item">
+                                <a href="{{ url_for('user_profile', user_id=referee.id) }}">{{ referee.username }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">لم يقم بدعوة أي مستخدم حتى الآن.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-clock-history text-info"></i> سجل حركة النقاط</h5>
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-sm table-striped">
+                        <thead><tr><th>الوقت</th><th>التغيير</th><th>السبب</th></tr></thead>
+                        <tbody>
+                        {% for log in user.point_logs|sort(attribute='timestamp', reverse=True) %}
+                            <tr>
+                                <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if log.points_change > 0 %}
+                                        <span class="badge bg-success">+{{ log.points_change }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ log.points_change }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.reason }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
