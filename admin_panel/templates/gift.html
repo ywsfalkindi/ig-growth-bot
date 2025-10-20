@@ -1,28 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
 <h2 class="mb-4"><i class="bi bi-gift-fill"></i> إرسال نقاط كهدية</h2>
-<div class="card">
-    <div class="card-body">
-        <form method="post">
-            <div class="mb-3">
-                <label for="username" class="form-label">يوزر المستخدم</label>
-                <input type="text" class="form-control" id="username" name="username" list="user_list" required>
-                <datalist id="user_list">
-                    {% for user in users %}
-                        <option value="{{ user.username }}">
-                    {% endfor %}
-                </datalist>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-bold">إلى المستخدم</label>
+                        <input type="text" class="form-control" id="username" name="username" list="user_list" required placeholder="ابدأ بكتابة يوزر المستخدم...">
+                        <datalist id="user_list">
+                            {% for user in users %}
+                                <option value="{{ user.username }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points" class="form-label fw-bold">عدد النقاط</label>
+                        <input type="number" class="form-control" id="points" name="points" required placeholder="e.g., 10 or -5">
+                        <div class="form-text">يمكنك إدخال رقم سالب لخصم النقاط.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label fw-bold">السبب (سيظهر للمستخدم في رسالة الهدية)</label>
+                        <input type="text" class="form-control" id="reason" name="reason" value="هدية من المدير">
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-send-fill"></i> إرسال الهدية
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="points" class="form-label">عدد النقاط</label>
-                <input type="number" class="form-control" id="points" name="points" required>
-            </div>
-            <div class="mb-3">
-                <label for="reason" class="form-label">السبب (سيظهر للمستخدم)</label>
-                <input type="text" class="form-control" id="reason" name="reason" value="هدية من المدير">
-            </div>
-            <button type="submit" class="btn btn-primary">إرسال الهدية</button>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

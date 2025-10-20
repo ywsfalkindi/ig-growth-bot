@@ -1,30 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>إدارة الطلبات ({{ orders|length }})</h2>
-<table class="table table-striped">
-  <thead><tr><th>اليوزر المستهدف</th><th>الكمية</th><th>تاريخ الطلب</th><th>الحالة</th><th>إجراء</th></tr></thead>
-  <tbody>
-  {% for order in orders %}
-    <tr>
-      <td>{{ order.username_to_follow }}</td>
-      <td>{{ order.amount }}</td>
-      <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-      <td>
-        {% if order.is_completed %}
-          <span class="badge bg-success">مكتمل</span>
-        {% else %}
-          <span class="badge bg-warning">معلق</span>
-        {% endif %}
-      </td>
-      <td>
-        {% if not order.is_completed %}
-        <form action="{{ url_for('complete_order', order_id=order.id) }}" method="post">
-          <button type="submit" class="btn btn-sm btn-success">تحديد كمكتمل</button>
-        </form>
-        {% endif %}
-      </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<h2 class="mb-4"><i class="bi bi-card-checklist"></i> إدارة الطلبات ({{ orders|length }})</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>اليوزر المستهدف</th>
+                        <th>الكمية</th>
+                        <th>تاريخ الطلب</th>
+                        <th>الحالة</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><strong>{{ order.username_to_follow }}</strong></td>
+                        <td>{{ order.amount }}</td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if order.is_completed %}
+                                <span class="badge bg-success">مكتمل</span>
+                            {% else %}
+                                <span class="badge bg-warning">معلق</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not order.is_completed %}
+                            <form action="{{ url_for('complete_order', order_id=order.id) }}" method="post">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-lg"></i> تحديد كمكتمل
+                                </button>
+                            </form>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

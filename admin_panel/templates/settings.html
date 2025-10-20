@@ -1,34 +1,74 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="mb-4">الإعدادات العامة للبوت</h2>
-<div class="card">
-    <div class="card-body">
-        <form method="post">
-            <div class="form-check form-switch mb-4">
-                <input class="form-check-input" type="checkbox" role="switch" id="botPaused" name="BOT_PAUSED" {% if settings.BOT_PAUSED %}checked{% endif %}>
-                <label class="form-check-label" for="botPaused">إيقاف البوت مؤقتًا (لن يستجيب لأي رسائل)</label>
+<h2 class="mb-4"><i class="bi bi-gear-fill"></i> الإعدادات العامة للبوت</h2>
+
+<form method="post">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">حالة البوت (تشغيل / إيقاف)</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <div class="form-check form-switch fs-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="botPaused" name="BOT_PAUSED" {% if settings.BOT_PAUSED %}checked{% endif %}>
+                </div>
+                <div class="ms-3">
+                    {% if settings.BOT_PAUSED %}
+                        <h4 class="mb-0 text-danger">البوت متوقف حاليًا 🛑</h4>
+                        <p class="mb-0 text-muted">لن يقوم البوت بالرد على أي رسائل جديدة حتى يتم إعادة تشغيله.</p>
+                    {% else %}
+                        <h4 class="mb-0 text-success">البوت يعمل الآن 🟢</h4>
+                        <p class="mb-0 text-muted">يستمع البوت للرسائل ويستجيب لها بشكل طبيعي.</p>
+                    {% endif %}
+                </div>
             </div>
-            <hr>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">إعدادات الاقتصاد</h5>
+        </div>
+        <div class="card-body">
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="pointsPerTask" class="form-label">النقاط لكل مهمة ناجحة</label>
+                    <label for="pointsPerTask" class="form-label fw-bold"><i class="bi bi-award"></i> النقاط لكل مهمة</label>
                     <input type="number" class="form-control" id="pointsPerTask" name="POINTS_PER_TASK" value="{{ settings.POINTS_PER_TASK }}">
+                    <div class="form-text">عدد النقاط التي يحصل عليها المستخدم عند إدخال كود صحيح.</div>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="followersPerPoint" class="form-label">عدد المتابعين لكل نقطة</label>
+                    <label for="followersPerPoint" class="form-label fw-bold"><i class="bi bi-person-plus"></i> المتابعين لكل نقطة</label>
                     <input type="number" class="form-control" id="followersPerPoint" name="FOLLOWERS_PER_POINT" value="{{ settings.FOLLOWERS_PER_POINT }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="mysteryBoxCost" class="form-label">تكلفة صندوق الغموض (بالنقاط)</label>
-                    <input type="number" class="form-control" id="mysteryBoxCost" name="MYSTERY_BOX_COST" value="{{ settings.MYSTERY_BOX_COST }}">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="tasksForLevelUp" class="form-label">عدد المهام اللازمة للترقية</label>
-                    <input type="number" class="form-control" id="tasksForLevelUp" name="TASKS_FOR_LEVEL_UP" value="{{ settings.TASKS_FOR_LEVEL_UP }}">
+                    <div class="form-text">عدد المتابعين الذي يساويه استبدال نقطة واحدة.</div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary mt-3">حفظ الإعدادات</button>
-        </form>
+        </div>
     </div>
-</div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">إعدادات التلعيب (Gamification)</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="mysteryBoxCost" class="form-label fw-bold"><i class="bi bi-dice-5"></i> تكلفة صندوق الغموض</label>
+                    <input type="number" class="form-control" id="mysteryBoxCost" name="MYSTERY_BOX_COST" value="{{ settings.MYSTERY_BOX_COST }}">
+                    <div class="form-text">عدد النقاط التي يتم خصمها عند تجربة صندوق الغموض.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tasksForLevelUp" class="form-label fw-bold"><i class="bi bi-trophy"></i> المهام اللازمة للترقية</label>
+                    <input type="number" class="form-control" id="tasksForLevelUp" name="TASKS_FOR_LEVEL_UP" value="{{ settings.TASKS_FOR_LEVEL_UP }}">
+                    <div class="form-text">عدد المهام التي يجب على المستخدم إكمالها للوصول إلى المستوى التالي.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-end">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle-fill"></i> حفظ الإعدادات
+        </button>
+    </div>
+</form>
 {% endblock %}
