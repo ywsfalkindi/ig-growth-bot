@@ -5,10 +5,7 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title text-muted">إجمالي المستخدمين</h5>
-                    <h2 class="fw-bold">{{ total_users }}</h2>
-                </div>
+                <div><h5 class="card-title text-muted">إجمالي المستخدمين</h5><h2 class="fw-bold">{{ total_users }}</h2></div>
                 <div class="icon text-primary"><i class="bi bi-people-fill"></i></div>
             </div>
         </div>
@@ -16,10 +13,7 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title text-muted">الطلبات المعلقة</h5>
-                    <h2 class="fw-bold text-warning">{{ pending_orders }}</h2>
-                </div>
+                <div><h5 class="card-title text-muted">الطلبات المعلقة</h5><h2 class="fw-bold text-warning">{{ pending_orders }}</h2></div>
                 <div class="icon text-warning"><i class="bi bi-hourglass-split"></i></div>
             </div>
         </div>
@@ -27,10 +21,7 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title text-muted">الطلبات المكتملة</h5>
-                    <h2 class="fw-bold text-success">{{ completed_orders }}</h2>
-                </div>
+                <div><h5 class="card-title text-muted">الطلبات المكتملة</h5><h2 class="fw-bold text-success">{{ completed_orders }}</h2></div>
                 <div class="icon text-success"><i class="bi bi-check-circle-fill"></i></div>
             </div>
         </div>
@@ -38,10 +29,7 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title text-muted">الأكواد المتاحة</h5>
-                    <h2 class="fw-bold">{{ unused_codes }}</h2>
-                </div>
+                <div><h5 class="card-title text-muted">الأكواد المتاحة</h5><h2 class="fw-bold">{{ unused_codes }}</h2></div>
                 <div class="icon text-info"><i class="bi bi-ticket-perforated-fill"></i></div>
             </div>
         </div>
@@ -50,6 +38,10 @@
 
 <hr class="my-4">
 
-<h3>نظرة عامة سريعة</h3>
-<p>هنا ستجد آخر الأنشطة في البوت...</p>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">تحليلات الأداء</h5>
+        <img src="data:image/png;base64,{{ orders_chart }}" class="img-fluid" alt="Chart">
+    </div>
+</div>
 {% endblock %}

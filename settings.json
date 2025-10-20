@@ -1,0 +1,7 @@
+{
+    "BOT_PAUSED": false,
+    "POINTS_PER_TASK": 1,
+    "FOLLOWERS_PER_POINT": 50,
+    "MYSTERY_BOX_COST": 2,
+    "TASKS_FOR_LEVEL_UP": 5
+}

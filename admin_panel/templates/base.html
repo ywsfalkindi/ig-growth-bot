@@ -65,6 +65,11 @@
                 </a>
             </li>
             <li class="nav-item">
+    <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
+        <i class="bi bi-gear-fill"></i> الإعدادات العامة
+    </a>
+</li>
+            <li class="nav-item">
                 <a href="{{ url_for('manage_users') }}" class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}">
                     <i class="bi bi-people-fill"></i> إدارة المستخدمين
                 </a>
