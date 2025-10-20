@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date
 
 # نستورد الفئة الأساسية التي أنشأناها في الملف السابق
 # النقطة في البداية تعني "من نفس المجلد الحالي"
@@ -13,6 +13,12 @@ class User(Base):
     ig_user_id = Column(String, unique=True, index=True) # ID المستخدم الفريد من انستجرام
     username = Column(String, unique=True)
     points = Column(Integer, default=0)
+    
+    # --- التحسينات الأسطورية تبدأ هنا ---
+    tasks_completed = Column(Integer, default=0) # عداد للمهام المكتملة
+    level = Column(Integer, default=1) # مستوى المستخدم
+    last_task_date = Column(Date, default=None) # لتتبع تاريخ آخر مهمة (للمكافآت اليومية)
+    streak = Column(Integer, default=0) # لتتبع سلسلة الإنجازات اليومية
 
 
 # Model for Codes Table
