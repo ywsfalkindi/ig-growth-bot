@@ -1,117 +1,92 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="mb-4">مرحباً بك في لوحة تحكم البوت الخاص بـ <span class="text-primary">{{ bot_username }}</span></h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">مرحباً في لوحة تحكم <span class="text-primary">{{ bot_username }}</span></h2>
+    <span class="text-muted">{{ "الآن" | format_datetime }}</span>
+</div>
 
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-white bg-primary h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">إجمالي المستخدمين</h5>
-                    <h2 class="fw-bold display-5">{{ total_users }}</h2>
-                </div>
-                <i class="bi bi-people-fill icon"></i>
-            </div>
+        <div class="stat-card bg-primary h-100">
+            <i class="bi bi-people-fill icon"></i>
+            <h5 class="card-title">إجمالي المستخدمين</h5>
+            <h2 class="fw-bold display-5">{{ total_users }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-white bg-success h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">النقاط المتداولة</h5>
-                    <h2 class="fw-bold display-5">{{ total_points }}</h2>
-                </div>
-                <i class="bi bi-coin icon"></i>
-            </div>
+        <div class="stat-card bg-success h-100">
+             <i class="bi bi-coin icon"></i>
+            <h5 class="card-title">النقاط المتداولة</h5>
+            <h2 class="fw-bold display-5">{{ total_points }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-dark bg-info h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">النشطون اليوم</h5>
-                    <h2 class="fw-bold display-5">{{ active_users_today }}</h2>
-                </div>
-                <i class="bi bi-activity icon"></i>
-            </div>
+        <div class="stat-card bg-info text-dark h-100">
+            <i class="bi bi-activity icon"></i>
+            <h5 class="card-title">النشطون اليوم</h5>
+            <h2 class="fw-bold display-5">{{ active_users_today }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-dark bg-warning h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">متوسط النقاط</h5>
-                    <h2 class="fw-bold display-5">{{ avg_points_per_user }}</h2>
-                </div>
-                <i class="bi bi-pie-chart-fill icon"></i>
-            </div>
+        <div class="stat-card bg-warning text-dark h-100">
+            <i class="bi bi-pie-chart-fill icon"></i>
+            <h5 class="card-title">متوسط النقاط</h5>
+            <h2 class="fw-bold display-5">{{ avg_points_per_user }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-white bg-danger h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">طلبات معلقة</h5>
-                    <h2 class="fw-bold display-5">{{ pending_orders }}</h2>
-                </div>
-                <i class="bi bi-hourglass-split icon"></i>
-            </div>
+        <div class="stat-card bg-danger h-100">
+            <i class="bi bi-hourglass-split icon"></i>
+            <h5 class="card-title">طلبات معلقة</h5>
+            <h2 class="fw-bold display-5">{{ pending_orders }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-white bg-secondary h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">طلبات مكتملة</h5>
-                    <h2 class="fw-bold display-5">{{ completed_orders }}</h2>
-                </div>
-                <i class="bi bi-check-circle-fill icon"></i>
-            </div>
+        <div class="stat-card bg-secondary h-100">
+            <i class="bi bi-check-circle-fill icon"></i>
+            <h5 class="card-title">طلبات مكتملة</h5>
+            <h2 class="fw-bold display-5">{{ completed_orders }}</h2>
         </div>
     </div>
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card text-white bg-dark h-100">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">أكواد متاحة</h5>
-                    <h2 class="fw-bold display-5">{{ unused_codes }}</h2>
-                </div>
-                <i class="bi bi-patch-check-fill icon"></i>
-            </div>
+        <div class="stat-card bg-dark h-100">
+            <i class="bi bi-patch-check-fill icon"></i>
+            <h5 class="card-title">أكواد متاحة</h5>
+            <h2 class="fw-bold display-5">{{ unused_codes }}</h2>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-6">
-        <div class="card shadow-sm"><div class="card-body">
+        <div class="card"><div class="card-body">
             <h5 class="card-title"><i class="bi bi-person-plus-fill text-primary"></i> المستخدمون الجدد (آخر 7 أيام)</h5>
             {% if users_chart %}
-                <img src="data:image/png;base64,{{ users_chart }}" class="img-fluid rounded">
+                <img src="data:image/png;base64,{{ users_chart }}" class="img-fluid rounded mt-3">
             {% else %}
                 <p class="text-center text-muted mt-3">لا توجد بيانات كافية لعرض الرسم البياني.</p>
             {% endif %}
         </div></div>
     </div>
     <div class="col-lg-6">
-        <div class="card shadow-sm"><div class="card-body">
+        <div class="card"><div class="card-body">
             <h5 class="card-title"><i class="bi bi-card-checklist text-success"></i> الطلبات الجديدة (آخر 7 أيام)</h5>
             {% if orders_chart %}
-                <img src="data:image/png;base64,{{ orders_chart }}" class="img-fluid rounded">
+                <img src="data:image/png;base64,{{ orders_chart }}" class="img-fluid rounded mt-3">
             {% else %}
                 <p class="text-center text-muted mt-3">لا توجد بيانات كافية لعرض الرسم البياني.</p>
             {% endif %}
         </div></div>
     </div>
 </div>
-<hr class="my-4">
-<div class="card shadow-sm">
+
+<div class="card mt-4">
     <div class="card-header">
         <h5 class="mb-0"><i class="bi bi-clock-history"></i> سجل آخر الأحداث</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-sm table-striped table-hover">
+            <table class="table table-hover">
                 <thead><tr><th>الوقت</th><th>المستخدم</th><th>التغيير</th><th>السبب</th></tr></thead>
                 <tbody>
                 {% for log in latest_logs %}
@@ -120,9 +95,9 @@
                         <td><a href="{{ url_for('user_profile', user_id=log.user.id) }}">{{ log.user.username }}</a></td>
                         <td>
                             {% if log.points_change > 0 %}
-                                <span class="badge bg-success">+{{ log.points_change }}</span>
+                                <span class="badge bg-success-subtle text-success-emphasis">+{{ log.points_change }}</span>
                             {% else %}
-                                <span class="badge bg-danger">{{ log.points_change }}</span>
+                                <span class="badge bg-danger-subtle text-danger-emphasis">{{ log.points_change }}</span>
                             {% endif %}
                         </td>
                         <td><small>{{ log.reason }}</small></td>
