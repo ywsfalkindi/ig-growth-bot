@@ -644,14 +644,63 @@ def get_task_code():
                     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: grid; place-items: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }}
                     .card {{ background: #fff; padding: 2rem 3rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }}
                     h1 {{ margin: 0; font-size: 1.25rem; color: #333; }}
-                    code {{ display: block; font-size: 3rem; font-weight: bold; color: #d90429; margin-top: 1rem; }}
+                    /* هذا يخفي الكود الحقيقي، لكننا نحتاجه للنسخ */
+                    #code-value {{ display: none; }}
+                    
+                    /* هذا هو الكود الذي يراه المستخدم */
+                    .code-display {{ display: block; font-size: 3rem; font-weight: bold; color: #d90429; margin: 1rem 0; }}
+
+                    button {{
+                        background-color: #007bff; color: white; font-weight: bold; font-size: 1.2rem;
+                        border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer;
+                        transition: background-color 0.2s;
+                    }}
+                    button:hover {{ background-color: #0056b3; }}
+                    button:active {{ background-color: #004a99; }}
                 </style>
             </head>
             <body>
                 <div class="card">
                     <h1>هذا هو الكود الخاص بك لإكمال المهمة:</h1>
-                    <code>{code.code_value}</code>
+                    
+                    <span class="code-display">{code.code_value}</span>
+                    
+                    <span id="code-value">{code.code_value}</span>
+                    
+                    <button id="copy-btn">
+                        <i class="bi bi-clipboard"></i> 
+                        اضغط هنا لنسخ الكود والمتابعة
+                    </button>
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 1rem;">سيتم إعادة توجيهك بعد الضغط على الزر.</p>
                 </div>
+
+                <script>
+                    // 1. انتظر حتى يتم تحميل الصفحة
+                    document.addEventListener('DOMContentLoaded', function() {{
+                        // 2. ابحث عن الزر والكود
+                        const copyButton = document.getElementById('copy-btn');
+                        const codeSpan = document.getElementById('code-value');
+                        const code = codeSpan.textContent;
+
+                        // 3. أضف حدث "النقر"
+                        copyButton.addEventListener('click', function() {{
+                            // 4. حاول نسخ الكود إلى الحافظة
+                            navigator.clipboard.writeText(code).then(function() {{
+                                // إذا نجح النسخ:
+                                copyButton.textContent = '✅ ... تم النسخ بنجاح!';
+                                
+                                // انتظر قليلاً ثم أعد التوجيه
+                                setTimeout(function() {{
+                                    window.location.href = 'https://www.google.com';
+                                }}, 500); // 0.5 ثانية
+
+                            }}, function(err) {{
+                                // إذا فشل النسخ (نادر)
+                                copyButton.textContent = 'فشل النسخ!';
+                            }});
+                        }});
+                    }});
+                </script>
             </body>
             </html>
             """
