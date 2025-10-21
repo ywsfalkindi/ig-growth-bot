@@ -1,13 +1,23 @@
+# --- ✨ إضافات للتحكم الكامل ---
+import eventlet
+eventlet.monkey_patch() # ضروري لـ SocketIO
+
 import os
 import sys
 import random
 import string
 import json
 import base64
+import subprocess
+import threading
+import time
 from io import BytesIO
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, abort
+from flask_socketio import SocketIO, emit
 from functools import wraps
 from datetime import datetime, timedelta
+from dotenv import load_dotenv, find_dotenv, set_key
+# --- نهاية الإضافات ---
 
 # --- تعديل المسار (لا تغيير هنا) ---
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -16,7 +26,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from database.database import SessionLocal
 from database.models import User, Order, Code, PointLog
 from bot.instagram_client import InstagramClient
-from config import IG_USERNAME, IG_PASSWORD, ADMIN_PASSWORD, BASE_DIR
+from config import IG_USERNAME, IG_PASSWORD, ADMIN_PASSWORD, BASE_DIR, DATABASE_URL
 
 import matplotlib
 matplotlib.use('Agg')
@@ -24,10 +34,63 @@ import matplotlib.pyplot as plt
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
-# --- إعدادات Flask (لا تغيير هنا) ---
+# --- إعدادات Flask و SocketIO ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-very-secret-key-that-you-should-change")
+socketio = SocketIO(app) # ✨ إضافة SocketIO
+
+# --- ✨ متغيرات جديدة للميزات ---
 SETTINGS_FILE = os.path.join(BASE_DIR, "settings.json")
+LOG_FILE = os.path.join(BASE_DIR, "bot.log") # ملف السجل الذي يكتبه main.py
+ENV_FILE = find_dotenv(os.path.join(BASE_DIR, '.env')) # مسار ملف .env
+DB_FILE = DATABASE_URL.replace("sqlite:///", "") # مسار ملف قاعدة البيانات
+
+# --- ✨ إضافة جديدة: فلتر لتنسيق الوقت ---
+@app.template_filter('format_datetime')
+def _jinja_filter_format_datetime(dt, fmt="%Y-%m-%d %H:%M"):
+    if not isinstance(dt, datetime):
+        try:
+            # محاولة تحويل النص إلى تاريخ إذا أمكن
+            dt = datetime.fromisoformat(str(dt))
+        except:
+            return dt # إذا فشل، أعد النص الأصلي (مثل "الآن")
+    return dt.strftime(fmt)
+# --- نهاية الإضافة ---
+
+
+# --- ✨ وظيفة لقراءة ملف .env ---
+def read_env_file():
+    env_vars = {}
+    try:
+        if ENV_FILE:
+            with open(ENV_FILE, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        env_vars[key.strip()] = value.strip()
+    except Exception as e:
+        flash(f"Error reading .env file: {e}", "danger")
+    return env_vars
+
+# --- ✨ وظيفة لمراقبة ملف السجل في الخلفية ---
+def tail_log_file():
+    """يراقب ملف السجل ويرسل أي سطور جديدة إلى المتصفح عبر SocketIO."""
+    try:
+        with open(LOG_FILE, 'r', encoding='utf-8') as f:
+            f.seek(0, 2) # اذهب إلى نهاية الملف
+            while True:
+                line = f.readline()
+                if line:
+                    socketio.emit('new_log', {'log_line': line.strip()})
+                else:
+                    eventlet.sleep(0.5) # استخدم eventlet.sleep بدلاً من time.sleep
+    except FileNotFoundError:
+        print(f"Log file not found at {LOG_FILE}, live logging will not work.")
+    except Exception as e:
+        print(f"Error in log tailing thread: {e}")
+
+# --- (لا تغيير في login_required, login, logout, create_chart) ---
 
 def login_required(f):
     @wraps(f)
@@ -68,6 +131,8 @@ def create_chart(data, title, x_label, y_label):
     plt.close(fig)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
+
+# --- ✨✨✨ تم تعديل هذه الدالة ✨✨✨ ---
 @app.route('/')
 @login_required
 def dashboard():
@@ -77,7 +142,12 @@ def dashboard():
     total_users = db.query(User).count()
     total_points = db.query(func.sum(User.points)).scalar() or 0
     today_date = datetime.utcnow().date()
-    active_users_today = db.query(PointLog).filter(func.date(PointLog.timestamp) == today_date).distinct(PointLog.user_id).count()
+    
+    # --- ✨ تعديل لإصلاح خطأ DISTINCT على SQLite ---
+    # هذا يحل تحذير SADeprecationWarning ويعطي النتيجة الصحيحة
+    active_users_today = db.query(PointLog.user_id).filter(func.date(PointLog.timestamp) == today_date).distinct().count()
+    # --- نهاية التعديل ---
+    
     avg_points_per_user = round(total_points / total_users if total_users > 0 else 0, 2)
     pending_orders = db.query(Order).filter(Order.is_completed == False).count()
     completed_orders = db.query(Order).filter(Order.is_completed == True).count()
@@ -104,8 +174,10 @@ def dashboard():
                            bot_username=IG_USERNAME,
                            orders_chart=orders_chart,
                            users_chart=users_chart,
-                           latest_logs=latest_logs
+                           latest_logs=latest_logs,
+                           current_time=datetime.utcnow() # <-- ✨ إضافة جديدة لتمرير الوقت
                            )
+# --- نهاية التعديل ---
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -233,16 +305,19 @@ def gift_points():
 @login_required
 def user_profile(user_id):
     db = SessionLocal()
-    user = db.query(User).options(joinedload(User.point_logs)).filter(User.id == user_id).first_or_404()
-    
-    # Get referrer
+
+    # --- ✨ هذا هو السطر الذي تم تعديله ---
+    user = db.query(User).options(joinedload(User.point_logs)).filter(User.id == user_id).first()
+    if not user:
+        abort(404) # إذا لم يتم العثور على المستخدم، اعرض صفحة 404
+    # --- نهاية التعديل ---
+
     referrer = None
     if user.referred_by_user_id:
         referrer = db.query(User).filter(User.ig_user_id == user.referred_by_user_id).first()
-        
-    # Get list of referees
+
     referees = db.query(User).filter(User.referred_by_user_id == user.ig_user_id).all()
-    
+
     db.close()
     return render_template('user_profile.html', user=user, referrer=referrer, referees=referees)
 
@@ -263,32 +338,6 @@ def manage_orders():
     db.close()
     return render_template('orders.html', orders=orders, status_filter=status_filter)
 
-@app.route('/codes', methods=['GET', 'POST'])
-@login_required
-def manage_codes():
-    db = SessionLocal()
-    if request.method == 'POST':
-        try:
-            count = int(request.form.get('count', 50))
-            existing_codes = {c.code_value for c in db.query(Code.code_value).all()}
-            new_codes_to_add = []
-            generated_in_this_run = set()
-            while len(new_codes_to_add) < count:
-                new_code_val = str(random.randint(10000, 99999))
-                if new_code_val not in existing_codes and new_code_val not in generated_in_this_run:
-                    generated_in_this_run.add(new_code_val)
-                    new_codes_to_add.append(Code(code_value=new_code_val))
-            db.add_all(new_codes_to_add)
-            db.commit()
-            flash(f"تم إنشاء {len(new_codes_to_add)} كود جديد بنجاح!", "success")
-        except ValueError:
-            flash("الرجاء إدخال رقم صحيح.", "danger")
-        return redirect(url_for('manage_codes'))
-        
-    codes = db.query(Code).order_by(Code.id.desc()).all()
-    db.close()
-    return render_template('codes.html', codes=codes)
-
 @app.route('/broadcast', methods=['GET', 'POST'])
 @login_required
 def broadcast_message():
@@ -300,9 +349,8 @@ def broadcast_message():
         try:
             client = InstagramClient(IG_USERNAME, IG_PASSWORD)
             db = SessionLocal()
-            users = db.query(User).filter(User.is_banned == False).all() # Send only to non-banned users
+            users = db.query(User).filter(User.is_banned == False).all() 
             user_ids = [user.ig_user_id for user in users]
-            # Sending to a large number of users might require batching, but for now this is fine.
             client.cl.direct_send(message, user_ids=user_ids)
             db.close()
             flash(f"تم إرسال الرسالة بنجاح إلى {len(user_ids)} مستخدم.", "success")
@@ -357,5 +405,181 @@ def complete_order(order_id):
     return redirect(request.referrer or url_for('manage_orders'))
 
 
+# --- ✨ مسارات جديدة لإدارة الأكواد ---
+
+@app.route('/codes', methods=['GET', 'POST'])
+@login_required
+def manage_codes():
+    db = SessionLocal()
+    if request.method == 'POST':
+        try:
+            count = int(request.form.get('count', 50))
+            existing_codes = {c.code_value for c in db.query(Code.code_value).all()}
+            new_codes_to_add = []
+            generated_in_this_run = set()
+            while len(new_codes_to_add) < count:
+                new_code_val = str(random.randint(10000, 99999))
+                if new_code_val not in existing_codes and new_code_val not in generated_in_this_run:
+                    generated_in_this_run.add(new_code_val)
+                    new_codes_to_add.append(Code(code_value=new_code_val))
+            db.add_all(new_codes_to_add)
+            db.commit()
+            flash(f"تم إنشاء {len(new_codes_to_add)} كود جديد بنجاح!", "success")
+        except ValueError:
+            flash("الرجاء إدخال رقم صحيح.", "danger")
+        return redirect(url_for('manage_codes'))
+        
+    codes = db.query(Code).order_by(Code.id.desc()).all()
+    db.close()
+    return render_template('codes.html', codes=codes)
+
+@app.route('/code/delete/<int:code_id>', methods=['POST'])
+@login_required
+def delete_code(code_id):
+    db = SessionLocal()
+    code = db.query(Code).filter(Code.id == code_id).first()
+    if code:
+        db.delete(code)
+        db.commit()
+        flash(f"تم حذف الكود {code.code_value} بنجاح.", "success")
+    db.close()
+    return redirect(url_for('manage_codes'))
+
+@app.route('/code/reactivate/<int:code_id>', methods=['POST'])
+@login_required
+def reactivate_code(code_id):
+    db = SessionLocal()
+    code = db.query(Code).filter(Code.id == code_id).first()
+    if code and code.is_used:
+        code.is_used = False
+        db.commit()
+        flash(f"تم إعادة تفعيل الكود {code.code_value} بنجاح.", "success")
+    db.close()
+    return redirect(url_for('manage_codes'))
+
+# --- ✨ مسارات جديدة للتعديل الشامل للمستخدم ---
+
+@app.route('/user/edit_full/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_user_full(user_id):
+    db = SessionLocal()
+
+    # --- ✨ هذا هو السطر الذي تم تعديله ---
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        abort(404)
+    # --- نهاية التعديل ---
+
+    if request.method == 'POST':
+        try:
+            # تحديث الحقول
+            user.username = request.form.get('username')
+            user.points = int(request.form.get('points'))
+            user.level = int(request.form.get('level'))
+            user.tasks_completed = int(request.form.get('tasks_completed'))
+            user.streak = int(request.form.get('streak'))
+            user.referral_code = request.form.get('referral_code')
+            user.referred_by_user_id = request.form.get('referred_by_user_id') or None
+            user.is_banned = 'is_banned' in request.form
+
+            db.commit()
+            flash(f"تم تحديث بيانات {user.username} بنجاح!", "success")
+            db.close()
+            return redirect(url_for('user_profile', user_id=user.id))
+
+        except Exception as e:
+            db.rollback()
+            flash(f"حدث خطأ أثناء التحديث: {e}", "danger")
+
+    db.close()
+    return render_template('edit_user_profile.html', user=user)
+
+# --- ✨ مسارات جديدة لإدارة "قاع" البوت ---
+
+@app.route('/core_settings', methods=['GET', 'POST'])
+@login_required
+def core_settings():
+    if not ENV_FILE:
+        flash("ملف .env غير موجود أو لا يمكن العثور عليه!", "danger")
+        return render_template('core_settings.html', env_vars={}, service_name="ig_bot.service")
+
+    if request.method == 'POST':
+        try:
+            # قراءة الإعدادات الحالية
+            current_vars = read_env_file()
+            for key in current_vars:
+                if key in request.form:
+                    new_value = request.form[key]
+                    set_key(ENV_FILE, key, new_value)
+            
+            flash("تم حفظ الإعدادات الأساسية. يتطلب تفعيلها إعادة تشغيل البوت.", "success")
+        except Exception as e:
+            flash(f"خطأ أثناء حفظ ملف .env: {e}. تأكد من صلاحيات الكتابة.", "danger")
+        return redirect(url_for('core_settings'))
+
+    env_vars = read_env_file()
+    return render_template('core_settings.html', env_vars=env_vars, service_name="ig_bot.service")
+
+@app.route('/process/restart', methods=['POST'])
+@login_required
+def process_restart():
+    try:
+        # ملاحظة: هذا يتطلب صلاحيات sudo بدون كلمة سر للمستخدم الذي يشغل Flask
+        result = subprocess.run(["sudo", "systemctl", "restart", "ig_bot.service"], capture_output=True, text=True)
+        if result.returncode == 0:
+            flash("تم إرسال أمر إعادة تشغيل البوت بنجاح.", "success")
+        else:
+            flash(f"فشل أمر إعادة التشغيل: {result.stderr}", "danger")
+    except Exception as e:
+        flash(f"خطأ أثناء محاولة إعادة التشغيل: {e}", "danger")
+    return redirect(url_for('core_settings'))
+
+@app.route('/process/stop', methods=['POST'])
+@login_required
+def process_stop():
+    try:
+        result = subprocess.run(["sudo", "systemctl", "stop", "ig_bot.service"], capture_output=True, text=True)
+        if result.returncode == 0:
+            flash("تم إرسال أمر إيقاف البوت بنجاح.", "warning")
+        else:
+            flash(f"فشل أمر الإيقاف: {result.stderr}", "danger")
+    except Exception as e:
+        flash(f"خطأ أثناء محاولة الإيقاف: {e}", "danger")
+    return redirect(url_for('core_settings'))
+
+# --- ✨ مسارات جديدة للصيانة والنسخ الاحتياطي ---
+
+@app.route('/maintenance')
+@login_required
+def maintenance():
+    return render_template('maintenance.html', db_path=DB_FILE)
+
+@app.route('/maintenance/backup_db')
+@login_required
+def backup_db():
+    try:
+        return send_file(DB_FILE, as_attachment=True, download_name=f"backup_bot_data_{datetime.now().strftime('%Y-%m-%d')}.db")
+    except FileNotFoundError:
+        flash("ملف قاعدة البيانات غير موجود!", "danger")
+        return redirect(url_for('maintenance'))
+    except Exception as e:
+        flash(f"خطأ أثناء إنشاء النسخة الاحتياطية: {e}", "danger")
+        return redirect(url_for('maintenance'))
+
+# --- ✨ مسارات جديدة للسجل المباشر ---
+
+@app.route('/live_logs')
+@login_required
+def live_logs():
+    return render_template('live_logs.html')
+
+@socketio.on('connect')
+def handle_connect():
+    emit('status', {'msg': 'Connected to server logs.'})
+
+# --- ✨ تشغيل الخادم ---
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    print("Starting log tailing thread...")
+    eventlet.spawn(tail_log_file) # بدء مراقبة السجل في خيط أخضر
+    print("Starting Flask-SocketIO server on port 5001...")
+    socketio.run(app, debug=True, port=5001, host='0.0.0.0')

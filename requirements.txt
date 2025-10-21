@@ -3,3 +3,6 @@ sqlalchemy
 python-dotenv
 python-telegram-bot
 alembic
+flask-socketio
+eventlet
+python-dotenv

@@ -17,8 +17,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="py-3 px-4" style="width: 70%;">الكود</th>
+                        <th class="py-3 px-4">الكود</th>
                         <th class="py-3 px-4">الحالة</th>
+                        <th class="py-3 px-4">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,6 +34,20 @@
                             {% else %}
                                 <span class="badge bg-success-subtle text-success-emphasis">متاح</span>
                             {% endif %}
+                        </td>
+                        <td class="p-4 d-flex gap-2">
+                            {% if code.is_used %}
+                                <form action="{{ url_for('reactivate_code', code_id=code.id) }}" method="post" onsubmit="return confirm('هل تريد إعادة تفعيل هذا الكود ليصبح متاحاً للاستخدام مرة أخرى؟');">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="إعادة تفعيل الكود">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <form action="{{ url_for('delete_code', code_id=code.id) }}" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الكود نهائياً؟');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف الكود">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

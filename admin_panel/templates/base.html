@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (لا تغيير في الـ CSS) */
         :root {
             --primary-color: #4a90e2;
             --primary-hover: #357ABD;
@@ -23,160 +24,31 @@
             --card-shadow: rgba(0, 0, 0, 0.05);
             --border-color: #e2e8f0;
         }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            font-size: 16px;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 260px;
-            padding: 1.5rem 1rem;
-            background-color: var(--sidebar-bg);
-            color: #fff;
-            transition: width 0.3s ease;
-        }
-
-        .main-content {
-            margin-right: 260px;
-            padding: 2rem;
-            transition: margin-right 0.3s ease;
-        }
-        
-        .sidebar-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .sidebar .nav-link {
-            color: var(--sidebar-link);
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            transition: all 0.2s ease-in-out;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar .nav-link i {
-            margin-left: 12px;
-            font-size: 1.2rem;
-        }
-        
-        .sidebar .nav-link.active, .sidebar .nav-link:hover {
-            color: #fff;
-            background-color: var(--sidebar-hover);
-        }
-        
-        .sidebar .nav-link.active {
-            background-color: var(--sidebar-active);
-        }
-
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px var(--card-shadow);
-            background-color: var(--card-bg);
-            margin-bottom: 1.5rem;
-        }
-        
-        .card-header {
-            background-color: transparent;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 1.5rem;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .card-title {
-            font-weight: 700;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            transition: all 0.2s ease;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
-        }
-        
-        .table {
-            border-collapse: separate;
-            border-spacing: 0 8px;
-        }
-        
-        .table th, .table td {
-            vertical-align: middle;
-        }
-        
-        .table thead th {
-            background-color: #f8f9fa;
-            border: none;
-        }
-        
-        .table tbody tr {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        
-        .table tbody tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            border-color: var(--border-color);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.25);
-        }
-        
-        .alert {
-            border-radius: 8px;
-        }
-        
-        .stat-card {
-            color: #fff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card .icon {
-            position: absolute;
-            top: 50%;
-            left: 1.5rem;
-            transform: translateY(-50%);
-            font-size: 4.5rem;
-            opacity: 0.15;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover .icon {
-            transform: translateY(-50%) scale(1.1);
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--secondary-color); color: var(--text-color); font-size: 16px; }
+        .sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 260px; padding: 1.5rem 1rem; background-color: var(--sidebar-bg); color: #fff; transition: width 0.3s ease; }
+        .main-content { margin-right: 260px; padding: 2rem; transition: margin-right 0.3s ease; }
+        .sidebar-header { text-align: center; margin-bottom: 2rem; font-size: 1.5rem; font-weight: 700; color: #fff; }
+        .sidebar .nav-link { color: var(--sidebar-link); font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; padding: 0.75rem 1rem; border-radius: 8px; transition: all 0.2s ease-in-out; display: flex; align-items: center; }
+        .sidebar .nav-link i { margin-left: 12px; font-size: 1.2rem; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: #fff; background-color: var(--sidebar-hover); }
+        .sidebar .nav-link.active { background-color: var(--sidebar-active); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px var(--card-shadow); background-color: var(--card-bg); margin-bottom: 1.5rem; }
+        .card-header { background-color: transparent; border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem; font-weight: 700; font-size: 1.1rem; }
+        .card-body { padding: 1.5rem; }
+        .card-title { font-weight: 700; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); transition: all 0.2s ease; }
+        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+        .table { border-collapse: separate; border-spacing: 0 8px; }
+        .table th, .table td { vertical-align: middle; }
+        .table thead th { background-color: #f8f9fa; border: none; }
+        .table tbody tr { box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .table tbody tr:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: all 0.2s ease; }
+        .form-control, .form-select { border-radius: 8px; border-color: var(--border-color); }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.25); }
+        .alert { border-radius: 8px; }
+        .stat-card { color: #fff; border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; }
+        .stat-card .icon { position: absolute; top: 50%; left: 1.5rem; transform: translateY(-50%); font-size: 4.5rem; opacity: 0.15; transition: transform 0.3s ease; }
+        .stat-card:hover .icon { transform: translateY(-50%) scale(1.1); }
     </style>
 </head>
 <body>
@@ -189,23 +61,15 @@
                     <i class="bi bi-pie-chart-fill"></i> الرئيسية
                 </a>
             </li>
+            
             <li class="nav-item">
-                <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
-                    <i class="bi bi-gear-fill"></i> الإعدادات العامة
+                <a href="{{ url_for('live_logs') }}" class="nav-link {% if request.endpoint == 'live_logs' %}active{% endif %}">
+                    <i class="bi bi-activity"></i> السجل المباشر
                 </a>
             </li>
+            
             <li class="nav-item">
-                <a href="{{ url_for('bot_messages') }}" class="nav-link {% if request.endpoint == 'bot_messages' %}active{% endif %}">
-                    <i class="bi bi-chat-left-text-fill"></i> رسائل البوت
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ url_for('gift_points') }}" class="nav-link {% if request.endpoint == 'gift_points' %}active{% endif %}">
-                    <i class="bi bi-gift-fill"></i> إرسال هدية
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ url_for('manage_users') }}" class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}">
+                <a href="{{ url_for('manage_users') }}" class="nav-link {% if request.endpoint == 'manage_users' or request.endpoint == 'user_profile' or request.endpoint == 'edit_user_full' %}active{% endif %}">
                     <i class="bi bi-people-fill"></i> إدارة المستخدمين
                 </a>
             </li>
@@ -215,8 +79,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ url_for('manage_codes') }}" class="nav-link {% if request.endpoint == 'manage_codes' %}active{% endif %}">
-                    <i class="bi bi-patch-check-fill"></i> إدارة الأكواد
+                <a href="{{ url_for('gift_points') }}" class="nav-link {% if request.endpoint == 'gift_points' %}active{% endif %}">
+                    <i class="bi bi-gift-fill"></i> إرسال هدية
                 </a>
             </li>
             <li class="nav-item">
@@ -224,6 +88,33 @@
                     <i class="bi bi-broadcast"></i> رسالة جماعية
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ url_for('manage_codes') }}" class="nav-link {% if request.endpoint == 'manage_codes' %}active{% endif %}">
+                    <i class="bi bi-patch-check-fill"></i> إدارة الأكواد
+                </a>
+            </li>
+            <li class.nav-item>
+                <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> الإعدادات العامة
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('bot_messages') }}" class="nav-link {% if request.endpoint == 'bot_messages' %}active{% endif %}">
+                    <i class="bi bi-chat-left-text-fill"></i> رسائل البوت
+                </a>
+            </li>
+
+            <li class.nav-item>
+                <a href="{{ url_for('core_settings') }}" class="nav-link {% if request.endpoint == 'core_settings' %}active{% endif %}">
+                    <i class="bi bi-hdd-stack-fill"></i> الإعدادات الأساسية
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %}">
+                    <i class="bi bi-shield-lock-fill"></i> الصيانة والنسخ
+                </a>
+            </li>
+
         </ul>
         <hr>
         <div class="text-center">
@@ -250,5 +141,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    {% if request.endpoint == 'live_logs' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            var socket = io();
+            var logOutput = document.getElementById('log-output');
+            
+            socket.on('connect', function() {
+                console.log('Socket.IO connected');
+                logOutput.innerHTML += '🟢 متصل بالسجل المباشر...\n';
+            });
+
+            socket.on('status', function(data) {
+                console.log(data.msg);
+            });
+
+            socket.on('new_log', function(data) {
+                if (data.log_line) {
+                    logOutput.innerHTML += data.log_line + '\n';
+                    logOutput.scrollTop = logOutput.scrollHeight; // التمرير للأسفل
+                }
+            });
+        });
+    </script>
+    {% endif %}
+
 </body>
 </html>

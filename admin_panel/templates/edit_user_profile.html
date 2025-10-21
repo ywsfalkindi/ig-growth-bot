@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('user_profile', user_id=user.id) }}" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-right"></i> العودة للملف الشخصي</a>
+<h2 class="mb-4">تعديل شامل: <span class="text-primary">{{ user.username }}</span></h2>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="username" class="form-label fw-bold">اسم المستخدم (Username)</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="referral_code" class="form-label fw-bold">كود الدعوة الخاص به</label>
+                    <input type="text" class="form-control" id="referral_code" name="referral_code" value="{{ user.referral_code }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="points" class="form-label fw-bold">النقاط 🪙</label>
+                    <input type="number" class="form-control" id="points" name="points" value="{{ user.points }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="level" class="form-label fw-bold">المستوى</label>
+                    <input type="number" class="form-control" id="level" name="level" value="{{ user.level }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="tasks_completed" class="form-label fw-bold">المهام المنجزة</label>
+                    <input type="number" class="form-control" id="tasks_completed" name="tasks_completed" value="{{ user.tasks_completed }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="streak" class="form-label fw-bold">السلسلة 🔥</label>
+                    <input type="number" class="form-control" id="streak" name="streak" value="{{ user.streak }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="referred_by_user_id" class="form-label fw-bold">تمت دعوته بواسطة (IG User ID)</label>
+                    <input type="text" class="form-control" id="referred_by_user_id" name="referred_by_user_id" value="{{ user.referred_by_user_id or '' }}">
+                    <div class="form-text">اتركه فارغاً إذا انضم بدون دعوة.</div>
+                </div>
+                <div class="col-md-6 d-flex align-items-center pt-4">
+                    <div class="form-check form-switch fs-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_banned" name="is_banned" {% if user.is_banned %}checked{% endif %}>
+                        <label class="form-check-label" for="is_banned">محظور 🛑</label>
+                    </div>
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle-fill"></i> حفظ التغييرات</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

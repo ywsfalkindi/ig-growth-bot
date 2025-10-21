@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-shield-lock-fill"></i> الصيانة والنسخ الاحتياطي</h2>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">النسخ الاحتياطي لقاعدة البيانات</h5>
+    </div>
+    <div class="card-body p-4">
+        <p>قم بتحميل نسخة احتياطية كاملة من قاعدة بيانات البوت (ملف SQLite) لحفظ بيانات المستخدمين والطلبات والنقاط.</p>
+        <p>المسار الحالي للقاعدة: <code>{{ db_path }}</code></p>
+        <a href="{{ url_for('backup_db') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-download"></i> تحميل نسخة احتياطية الآن
+        </a>
+    </div>
+</div>
+{% endblock %}

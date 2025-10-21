@@ -6,10 +6,18 @@
     <div class="col-lg-4">
         <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title mb-3"><i class="bi bi-person-circle text-primary"></i> المعلومات الأساسية</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-circle text-primary"></i> المعلومات الأساسية</h5>
+                    <a href="{{ url_for('edit_user_full', user_id=user.id) }}" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-pencil-square"></i> تعديل شامل
+                    </a>
+                </div>
+                
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between"><strong>النقاط:</strong> <span>{{ user.points }} 🪙</span></li>
                     <li class="list-group-item d-flex justify-content-between"><strong>المستوى:</strong> <span>{{ user.level }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>المهام المنجزة:</strong> <span>{{ user.tasks_completed }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><strong>السلسلة:</strong> <span>{{ user.streak }} 🔥</span></li>
                     <li class="list-group-item d-flex justify-content-between"><strong>تاريخ الانضمام:</strong> <span>{{ user.created_at.strftime('%Y-%m-%d') }}</span></li>
                     <li class="list-group-item d-flex justify-content-between"><strong>الحالة:</strong>
                         {% if user.is_banned %}
@@ -31,7 +39,7 @@
                 </div>
                 <h6><i class="bi bi-person-check-fill"></i> تمت دعوته بواسطة:</h6>
                 {% if referrer %}
-                    <p><a href="{{ url_for('user_profile', user_id=referrer.id) }}">{{ referrer.username }}</a></p>
+                    <p><a href="{{ url_for('user_profile', user_id=referrer.id) }}">{{ referrer.username }}</a> (ID: {{ referrer.ig_user_id }})</p>
                 {% else %}
                     <p class="text-muted">لا يوجد (انضم بدون كود دعوة).</p>
                 {% endif %}
