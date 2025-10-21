@@ -51,7 +51,7 @@ DB_FILE = DATABASE_URL.replace("sqlite:///", "") # مسار ملف قاعدة ا
 # --- ✨✨✨ (2) الإضافة الثانية: أضف هنا دومين موقع اختصار الروابط الخاص بك ✨✨✨ ---
 # هذا هو أهم سطر لإصلاح الثغرة. استبدل "YOUR_SHORTENER_DOMAIN.COM" بالدومين الفعلي.
 # مثال: ["ouo.io", "ouo.press"] أو ["adf.ly"]
-ALLOWED_REFERERS = ["bestcash2020.com"] 
+ALLOWED_REFERERS = ["bestcash2020.com", "best-cash.net"]
 # --- نهاية الإضافة ---
 
 
