@@ -2,8 +2,7 @@ import logging
 import os
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
-# --- ✨ إضافة جديدة: نحتاج هذا الكلاس للأزرار ---
-from instagrapi.types import QuickReply 
+# --- ✨ تم إزالة السطر الذي يسبب العطل من هنا ---
 from config import BASE_DIR
 
 # ... (إعدادات الـ logging وملف الجلسة) ...
@@ -61,28 +60,14 @@ class InstagramClient:  # <--- المستوى 0 (لا توجد مسافة باد
         except Exception as e:
             logging.error(f"Could not send message to user_id {user_id}: {e}")
 
-    # --- ✨✨✨ (تم تصحيح هذا الكود) ✨✨✨ ---
-    def send_direct_message_with_quick_replies(self, user_id: str, text: str, replies: list):
-        """
-        ترسل رسالة نصية مع أزرار رد سريع.
-        Replies should be a list of tuples: [("Button Title", "payload_data"), ...]
-        """
-        try:
-            # --- ✨ التصحيح هنا: يجب تحويل القائمة إلى كائنات QuickReply ---
-            quick_replies_list = [QuickReply(title=title, payload=payload) for title, payload in replies]
-            
-            self.cl.direct_send(text, user_ids=[user_id], quick_replies=quick_replies_list)
-            logging.info(f"Message with quick replies sent to user_id: {user_id}")
-        except Exception as e:
-            logging.error(f"Could not send quick replies to user_id {user_id}: {e}")
-    # --- نهاية التصحيح ---
+    # --- ✨ تم إزالة دالة الأزرار السريعة (send_direct_message_with_quick_replies) من هنا ---
 
     def mark_thread_as_read(self, thread_id: str):  # <--- المستوى 1
         """
         تحدد محادثة كاملة على أنها مقروءة.
         """
         try:  # <--- المستوى 2
-            # --- ✨ التصحيح هنا: كان الاسم خطأ ---
+            # --- ✨✨✨ إصلاح الخطأ الثاني: هذا هو الاسم الصحيح للدالة ✨✨✨ ---
             self.cl.direct_mark_as_read(thread_id)
         except Exception as e:
             logging.error(f"Could not mark thread {thread_id} as read: {e}")

@@ -8,7 +8,7 @@ import os
 from datetime import date, timedelta
 
 from database.database import SessionLocal
-# --- ✨ تعديل: إضافة Achievement ---
+# --- ✨ (هذا الكود صحيح ولا يزال مطلوباً للإنجازات) ---
 from database.models import User, Code, Order, PointLog, Achievement
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, BASE_DIR
 
@@ -40,7 +40,7 @@ class BotLogic:
         user_id = str(sender.pk)
         text = message.text.lower().strip()
         
-        # --- ✨ تعديل: استقبال المستخدم الجديد ---
+        # --- (ميزة الترحيب: ستبقى وتعمل) ---
         user, is_new_user = self._get_or_create_user(sender)
 
         if is_new_user:
@@ -49,8 +49,7 @@ class BotLogic:
                 "أكمل المهام، اجمع النقاط، واستبدلها بمتابعين.\n\n"
                 "🎁 إذا كان لديك كود دعوة من صديق (من 6 أحرف)، أرسله الآن لتحصل أنت وهو على هدية!")
             client.send_direct_message(user_id, welcome_msg.format(username=sender.full_name))
-            # لا نوقف التنفيذ، للسماح بمعالجة كود الدعوة لو أرسله مباشرة
-        # --- نهاية التعديل ---
+        # --- نهاية الميزة ---
 
         if user.is_banned:
             client.send_direct_message(user_id, self.messages.get("USER_BANNED_MESSAGE", "أنت محظور."))
@@ -65,7 +64,7 @@ class BotLogic:
             self._create_order(user, text, client)
             return
 
-        # --- ✨ تعديل: إضافة فهم اللغة الطبيعية ---
+        # --- (ميزة فهم اللغة الطبيعية: ستبقى وتعمل) ---
         if text == "1" or "مهمة" in text or "task" in text:
             client.send_direct_message(user_id, self.messages.get("TASK_MESSAGE"))
         elif text == "2" or "استبدال" in text or "redeem" in text or "متابعين" in text:
@@ -74,7 +73,7 @@ class BotLogic:
             self._play_mystery_box(user, client)
         elif text == "4" or "دعوة" in text or "referral" in text or "صديق" in text:
             client.send_direct_message(user_id, self.messages.get("REFERRAL_INFO_MESSAGE").format(referral_code=user.referral_code))
-        # --- ✨ إضافة جديدة: قائمة المتصدرين ---
+        # --- (ميزة قائمة المتصدرين: ستبقى وتعمل) ---
         elif text == "5" or "متصدر" in text or "leaderboard" in text or "ترتيب" in text:
              self._show_leaderboard(user, client)
         elif len(text) == 5 and text.isdigit():
@@ -91,15 +90,9 @@ class BotLogic:
                 streak=user.streak, tasks_left=tasks_left, box_cost=self.settings.get("MYSTERY_BOX_COST", 2)
             )
 
-            # --- ✨ تعديل: استخدام الأزرار السريعة بدلاً من النص ---
-            replies_list = [
-                ("🚀 مهمة جديدة", "1"),
-                ("🎁 استبدال النقاط", "2"),
-                ("🎲 صندوق الغموض", ("3")),
-                ("🤝 دعوة صديق", "4"),
-                ("🏆 المتصدرون", "5") # <-- إضافة زر المتصدرين
-            ]
-            client.send_direct_message_with_quick_replies(user_id, message_text, replies_list)
+            # --- ✨✨✨ العودة إلى الطريقة القديمة (المضمونة) ✨✨✨ ---
+            # أعدنا إرسال الرسالة العادية بدلاً من الأزرار
+            client.send_direct_message(user_id, message_text)
             # --- نهاية التعديل ---
 
     def _generate_referral_code(self):
@@ -108,7 +101,7 @@ class BotLogic:
             if not self.db.query(User).filter(User.referral_code == code).first():
                 return code
 
-    # --- ✨ تعديل: إرجاع علامة المستخدم الجديد ---
+    # --- (ميزة الترحيب: ستبقى وتعمل) ---
     def _get_or_create_user(self, sender):
         user_id = str(sender.pk)
         is_new_user = False # <-- إضافة
@@ -139,7 +132,7 @@ class BotLogic:
             client.send_direct_message(referrer.ig_user_id, f"🎉 أخبار رائعة! لقد استخدم المستخدم {new_user.username} كود الدعوة الخاص بك وحصلت على 3 نقاط!")
             logging.info(f"User {new_user.username} was referred by {referrer.username}")
             
-            # --- ✨ إضافة: منح إنجاز الدعوة ---
+            # --- (ميزة الإنجازات: ستبقى وتعمل) ---
             self._check_and_grant_achievement(referrer, "first_referral", "لقد قمت بدعوة صديقك الأول!", client)
             # --- نهاية الإضافة ---
     
@@ -228,7 +221,7 @@ class BotLogic:
             new_title = LEVELS.get(user.level, "أسطورة ✨")
             client.send_direct_message(user.ig_user_id, self.messages.get("LEVEL_UP_MESSAGE").format(level_title=new_title, level=user.level))
 
-        # --- ✨ إضافة: منح إنجازات المهام ---
+        # --- (ميزة الإنجازات: ستبقى وتعمل) ---
         if user.tasks_completed == 1:
             self._check_and_grant_achievement(user, "first_task", "لقد أكملت مهمتك الأولى!", client)
         elif user.tasks_completed == 10:
@@ -273,7 +266,7 @@ class BotLogic:
         except Exception as e:
             logging.error(f"Failed to send Telegram notification: {e}")
 
-    # --- ✨✨✨ إضافة جديدة: قائمة المتصدرين ✨✨✨ ---
+    # --- (ميزة قائمة المتصدرين: ستبقى وتعمل) ---
     def _show_leaderboard(self, user, client):
         """يعرض قائمة أعلى 5 مستخدمين وترتيب المستخدم الحالي."""
         try:
@@ -295,7 +288,7 @@ class BotLogic:
             client.send_direct_message(user.ig_user_id, "حدث خطأ أثناء جلب قائمة المتصدرين.")
     # --- نهاية الإضافة ---
     
-    # --- ✨✨✨ إضافة جديدة: نظام الإنجازات ✨✨✨ ---
+    # --- (ميزة الإنجازات: ستبقى وتعمل) ---
     def _check_and_grant_achievement(self, user, achievement_name, message_to_send, client):
         """يتحقق إذا كان المستخدم يملك الإنجاز، ويمنحه إياه إذا لم يكن كذلك."""
         try:
