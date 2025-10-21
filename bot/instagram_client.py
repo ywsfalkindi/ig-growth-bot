@@ -58,6 +58,6 @@ class InstagramClient:
         تحدد محادثة كاملة على أنها مقروءة.
         """
         try:
-            self.cl.direct_mark_as_read(thread_id)
+            self.cl.direct_thread_mark_as_read(thread_id)
         except Exception as e:
             logging.error(f"Could not mark thread {thread_id} as read: {e}")
