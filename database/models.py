@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -20,6 +20,8 @@ class User(Base):
 
     orders = relationship("Order", back_populates="owner")
     point_logs = relationship("PointLog", back_populates="user", cascade="all, delete-orphan")
+    # --- ✨ إضافة جديدة ---
+    achievements = relationship("Achievement", back_populates="user", cascade="all, delete-orphan")
 
 class Code(Base):
     __tablename__ = "codes"
@@ -60,4 +62,18 @@ class AdminLog(Base):
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     
     target_user = relationship("User")
+# --- نهاية الإضافة ---
+
+
+# --- ✨✨✨ الإضافة الجديدة: جدول الإنجازات ✨✨✨ ---
+class Achievement(Base):
+    __tablename__ = "achievements"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    achievement_name = Column(String, nullable=False) # e.g., "task_master_10", "referral_king_5"
+    unlocked_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    user = relationship("User", back_populates="achievements")
+    # ضمان عدم تكرار الإنجاز لنفس المستخدم
+    __table_args__ = (UniqueConstraint('user_id', 'achievement_name', name='_user_achievement_uc'),)
 # --- نهاية الإضافة ---

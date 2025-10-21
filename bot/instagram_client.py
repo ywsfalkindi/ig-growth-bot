@@ -59,6 +59,21 @@ class InstagramClient:  # <--- المستوى 0 (لا توجد مسافة باد
         except Exception as e:
             logging.error(f"Could not send message to user_id {user_id}: {e}")
 
+    # --- ✨✨✨ إضافة جديدة: لإرسال الأزرار ✨✨✨ ---
+    def send_direct_message_with_quick_replies(self, user_id: str, text: str, replies: list):
+        """
+        ترسل رسالة نصية مع أزرار رد سريع.
+        Replies should be a list of tuples: [("Button Title", "payload_data"), ...]
+        """
+        try:
+            # تحويل القائمة إلى التنسيق الذي تتطلبه المكتبة
+            quick_replies = [{"title": title, "payload": payload} for title, payload in replies]
+            self.cl.direct_send(text, user_ids=[user_id], quick_replies=quick_replies)
+            logging.info(f"Message with quick replies sent to user_id: {user_id}")
+        except Exception as e:
+            logging.error(f"Could not send quick replies to user_id {user_id}: {e}")
+    # --- نهاية الإضافة ---
+
     def mark_thread_as_read(self, thread_id: str):  # <--- المستوى 1
         """
         تحدد محادثة كاملة على أنها مقروءة.

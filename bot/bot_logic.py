@@ -8,7 +8,8 @@ import os
 from datetime import date, timedelta
 
 from database.database import SessionLocal
-from database.models import User, Code, Order, PointLog
+# --- ✨ تعديل: إضافة Achievement ---
+from database.models import User, Code, Order, PointLog, Achievement
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, BASE_DIR
 
 LEVELS = {1: "مبتدئ 🥉", 2: "نشيط 🥈", 3: "محترف 🥇", 4: "خبير 🎖️", 5: "أسطورة ✨"}
@@ -38,7 +39,18 @@ class BotLogic:
 
         user_id = str(sender.pk)
         text = message.text.lower().strip()
-        user = self._get_or_create_user(sender)
+        
+        # --- ✨ تعديل: استقبال المستخدم الجديد ---
+        user, is_new_user = self._get_or_create_user(sender)
+
+        if is_new_user:
+            welcome_msg = self.messages.get("WELCOME_MESSAGE", 
+                "👋 أهلاً بك يا {username} في بوت تجميع النقاط!\n\n"
+                "أكمل المهام، اجمع النقاط، واستبدلها بمتابعين.\n\n"
+                "🎁 إذا كان لديك كود دعوة من صديق (من 6 أحرف)، أرسله الآن لتحصل أنت وهو على هدية!")
+            client.send_direct_message(user_id, welcome_msg.format(username=sender.full_name))
+            # لا نوقف التنفيذ، للسماح بمعالجة كود الدعوة لو أرسله مباشرة
+        # --- نهاية التعديل ---
 
         if user.is_banned:
             client.send_direct_message(user_id, self.messages.get("USER_BANNED_MESSAGE", "أنت محظور."))
@@ -53,14 +65,18 @@ class BotLogic:
             self._create_order(user, text, client)
             return
 
-        if text == "1":
+        # --- ✨ تعديل: إضافة فهم اللغة الطبيعية ---
+        if text == "1" or "مهمة" in text or "task" in text:
             client.send_direct_message(user_id, self.messages.get("TASK_MESSAGE"))
-        elif text == "2":
+        elif text == "2" or "استبدال" in text or "redeem" in text or "متابعين" in text:
             self._initiate_redemption(user_id, user, client)
-        elif text == "3":
+        elif text == "3" or "صندوق" in text or "mystery" in text or "حظ" in text:
             self._play_mystery_box(user, client)
-        elif text == "4":
+        elif text == "4" or "دعوة" in text or "referral" in text or "صديق" in text:
             client.send_direct_message(user_id, self.messages.get("REFERRAL_INFO_MESSAGE").format(referral_code=user.referral_code))
+        # --- ✨ إضافة جديدة: قائمة المتصدرين ---
+        elif text == "5" or "متصدر" in text or "leaderboard" in text or "ترتيب" in text:
+             self._show_leaderboard(user, client)
         elif len(text) == 5 and text.isdigit():
             self._verify_code(user, text, client)
         else:
@@ -68,11 +84,23 @@ class BotLogic:
             tasks_for_level_up = self.settings.get("TASKS_FOR_LEVEL_UP", 5)
             tasks_left = tasks_for_level_up - (user.tasks_completed % tasks_for_level_up)
             level_title = LEVELS.get(user.level, "أسطورة ✨")
-            client.send_direct_message(user_id, self.messages.get("MAIN_MENU_MESSAGE").format(
+            
+            message_text = self.messages.get("MAIN_MENU_MESSAGE").format(
                 username=sender.full_name, daily_bonus_message=daily_bonus_message,
                 level_title=level_title, level=user.level, points=user.points,
                 streak=user.streak, tasks_left=tasks_left, box_cost=self.settings.get("MYSTERY_BOX_COST", 2)
-            ))
+            )
+
+            # --- ✨ تعديل: استخدام الأزرار السريعة بدلاً من النص ---
+            replies_list = [
+                ("🚀 مهمة جديدة", "1"),
+                ("🎁 استبدال النقاط", "2"),
+                ("🎲 صندوق الغموض", ("3")),
+                ("🤝 دعوة صديق", "4"),
+                ("🏆 المتصدرون", "5") # <-- إضافة زر المتصدرين
+            ]
+            client.send_direct_message_with_quick_replies(user_id, message_text, replies_list)
+            # --- نهاية التعديل ---
 
     def _generate_referral_code(self):
         while True:
@@ -80,10 +108,13 @@ class BotLogic:
             if not self.db.query(User).filter(User.referral_code == code).first():
                 return code
 
+    # --- ✨ تعديل: إرجاع علامة المستخدم الجديد ---
     def _get_or_create_user(self, sender):
         user_id = str(sender.pk)
+        is_new_user = False # <-- إضافة
         user = self.db.query(User).filter(User.ig_user_id == user_id).first()
         if not user:
+            is_new_user = True # <-- إضافة
             user = User(
                 ig_user_id=user_id, 
                 username=sender.username,
@@ -92,7 +123,8 @@ class BotLogic:
             self.db.add(user)
             self.db.commit()
             logging.info(f"New user created: {user.username} with referral code {user.referral_code}")
-        return user
+        return user, is_new_user # <-- تعديل
+    # --- نهاية التعديل ---
 
     def _handle_referral_code(self, new_user, code, client):
         if new_user.referred_by_user_id:
@@ -106,6 +138,10 @@ class BotLogic:
             client.send_direct_message(new_user.ig_user_id, "✅ تم تفعيل كود الدعوة! لقد حصلت على 3 نقاط هدية.")
             client.send_direct_message(referrer.ig_user_id, f"🎉 أخبار رائعة! لقد استخدم المستخدم {new_user.username} كود الدعوة الخاص بك وحصلت على 3 نقاط!")
             logging.info(f"User {new_user.username} was referred by {referrer.username}")
+            
+            # --- ✨ إضافة: منح إنجاز الدعوة ---
+            self._check_and_grant_achievement(referrer, "first_referral", "لقد قمت بدعوة صديقك الأول!", client)
+            # --- نهاية الإضافة ---
     
     def _check_daily_bonus_eligibility(self, user):
         today = date.today()
@@ -162,8 +198,6 @@ class BotLogic:
     def _verify_code(self, user, code_value, client):
         code_obj = self.db.query(Code).filter(Code.code_value == code_value).first()
         
-        # --- ✨✨✨ هذا هو المقطع الذي تم تعديله ✨✨✨ ---
-        
         # 1. هل الكود موجود أصلاً؟
         if not code_obj:
             client.send_direct_message(user.ig_user_id, self.messages.get("INVALID_CODE_MESSAGE"))
@@ -175,13 +209,10 @@ class BotLogic:
             return
 
         # 3. هل هذا الكود تم "حجزه" (عرضه) من صفحة المهام؟
-        #    (هذا يمنع المستخدمين من تخمين أكواد عشوائية)
         if not code_obj.is_claimed:
             client.send_direct_message(user.ig_user_id, self.messages.get("INVALID_CODE_MESSAGE"))
             return
         
-        # --- نهاية التعديل ---
-
         points_per_task = self.settings.get("POINTS_PER_TASK", 1)
         code_obj.is_used = True # <-- اجعله مستخدماً الآن
         self._add_points(user, points_per_task, f"إكمال مهمة - كود {code_value}")
@@ -196,6 +227,13 @@ class BotLogic:
             user.level += 1
             new_title = LEVELS.get(user.level, "أسطورة ✨")
             client.send_direct_message(user.ig_user_id, self.messages.get("LEVEL_UP_MESSAGE").format(level_title=new_title, level=user.level))
+
+        # --- ✨ إضافة: منح إنجازات المهام ---
+        if user.tasks_completed == 1:
+            self._check_and_grant_achievement(user, "first_task", "لقد أكملت مهمتك الأولى!", client)
+        elif user.tasks_completed == 10:
+            self._check_and_grant_achievement(user, "ten_tasks", "وصلت إلى 10 مهام مكتملة! استمر!", client)
+        # --- نهاية الإضافة ---
             
         self.db.commit()
         self.handle_message(type('obj', (object,), {'text': 'menu'})(), type('obj', (object,), {'pk': user.ig_user_id, 'full_name': user.username})(), client)
@@ -234,3 +272,39 @@ class BotLogic:
             logging.info(f"Telegram notification sent for order {order.id}")
         except Exception as e:
             logging.error(f"Failed to send Telegram notification: {e}")
+
+    # --- ✨✨✨ إضافة جديدة: قائمة المتصدرين ✨✨✨ ---
+    def _show_leaderboard(self, user, client):
+        """يعرض قائمة أعلى 5 مستخدمين وترتيب المستخدم الحالي."""
+        try:
+            top_users = self.db.query(User).filter(User.is_banned == False).order_by(User.points.desc()).limit(5).all()
+            message = "🏆 قائمة المتصدرين 🏆\n\n"
+            
+            for i, top_user in enumerate(top_users):
+                message += f"{i+1}. {top_user.username} - {top_user.points} نقطة 🪙\n"
+            
+            message += "\n------------------\n"
+            
+            # حساب ترتيب المستخدم الحالي
+            user_rank = self.db.query(User).filter(User.points > user.points, User.is_banned == False).count() + 1
+            message += f"موقعك الحالي: #{user_rank} برصيد {user.points} نقطة 🪙\n\nاستمر في العمل!"
+            
+            client.send_direct_message(user.ig_user_id, message)
+        except Exception as e:
+            logging.error(f"Error showing leaderboard: {e}")
+            client.send_direct_message(user.ig_user_id, "حدث خطأ أثناء جلب قائمة المتصدرين.")
+    # --- نهاية الإضافة ---
+    
+    # --- ✨✨✨ إضافة جديدة: نظام الإنجازات ✨✨✨ ---
+    def _check_and_grant_achievement(self, user, achievement_name, message_to_send, client):
+        """يتحقق إذا كان المستخدم يملك الإنجاز، ويمنحه إياه إذا لم يكن كذلك."""
+        try:
+            has_achievement = self.db.query(Achievement).filter_by(user_id=user.id, achievement_name=achievement_name).first()
+            if not has_achievement:
+                new_achievement = Achievement(user_id=user.id, achievement_name=achievement_name)
+                self.db.add(new_achievement)
+                # لا نحتاج commit هنا، سيتم عمل commit من الدالة الأصلية (مثل _verify_code)
+                client.send_direct_message(user.ig_user_id, f"🏆 إنجاز جديد! 🏆\n\n{message_to_send}")
+        except Exception as e:
+            logging.error(f"Error granting achievement {achievement_name} to user {user.id}: {e}")
+    # --- نهاية الإضافة ---
