@@ -1,15 +1,16 @@
 import logging
+import os # <-- إضافة جديدة
 from instagrapi import Client
 from instagrapi.exceptions import LoginRequired
+from config import BASE_DIR # <-- إضافة جديدة
 
-# إعداد نظام تسجيل بسيط لتتبع الأحداث والأخطاء
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# --- ✨ تعديل: تعريف مسار ملف الجلسة ---
+SESSION_FILE = os.path.join(BASE_DIR, "session.json")
+# --- نهاية التعديل ---
+
 class InstagramClient:
-    """
-    هذه الفئة مسؤولة عن كل التفاعلات المباشرة مع واجهة انستجرام
-    باستخدام مكتبة instagrapi.
-    """
     def __init__(self, username, password):
         self.cl = Client()
         self.username = username
@@ -19,45 +20,41 @@ class InstagramClient:
     def login(self):
         """
         تسجيل الدخول إلى حساب انستجرام.
+        --- ✨ تم تعديل هذه الدالة بالكامل ✨ ---
         """
         try:
-            logging.info(f"Attempting to log in as {self.username}...")
-            self.cl.login(self.username, self.password)
-            logging.info(f"Successfully logged in as {self.username}.")
+            if os.path.exists(SESSION_FILE):
+                logging.info("Found existing session file. Attempting to load session...")
+                self.cl.load_settings(SESSION_FILE)
+                self.cl.login(self.username, self.password) # التحقق من الجلسة
+                logging.info(f"Successfully logged in as {self.username} using saved session.")
+            else:
+                logging.info(f"No session file found. Attempting a fresh login as {self.username}...")
+                self.cl.login(self.username, self.password)
+                self.cl.dump_settings(SESSION_FILE) # حفظ الجلسة الجديدة
+                logging.info(f"Successfully logged in and saved session to {SESSION_FILE}.")
+                
         except LoginRequired:
-            logging.error("Login failed. Please check your username and password.")
-            raise  # نوقف البرنامج إذا فشل تسجيل الدخول
+            logging.warning("Session expired or invalid. Attempting a fresh login...")
+            try:
+                self.cl.login(self.username, self.password)
+                self.cl.dump_settings(SESSION_FILE) # حفظ الجلسة الجديدة
+                logging.info(f"Successfully logged in and saved new session to {SESSION_FILE}.")
+            except Exception as e:
+                logging.error(f"Fresh login failed after session load failed: {e}")
+                raise
         except Exception as e:
             logging.error(f"An unexpected error occurred during login: {e}")
             raise
-
-    def get_unread_threads(self):
-        """
-        تجلب المحادثات غير المقروءة من صندوق الوارد الرئيسي فقط.
-        """
-        try:
-            # سنقوم فقط بجلب الرسائل من صندوق الوارد الرئيسي
-            inbox_threads = self.cl.direct_threads(amount=20, selected_filter='unread')
-            return inbox_threads
-        except Exception as e:
-            logging.error(f"Could not fetch direct threads: {e}")
-            return []
-
-    def send_direct_message(self, user_id: str, text: str):
-        """
-        ترسل رسالة نصية مباشرة إلى مستخدم معين.
-        """
-        try:
-            self.cl.direct_send(text, user_ids=[user_id])
-            logging.info(f"Message sent to user_id: {user_id}")
-        except Exception as e:
-            logging.error(f"Could not send message to user_id {user_id}: {e}")
+    
+    # ... (باقي الدوال كما هي) ...
 
     def mark_thread_as_read(self, thread_id: str):
         """
         تحدد محادثة كاملة على أنها مقروءة.
         """
         try:
+            # --- ✨✨ لا تنس إصلاح الخطأ المطبعي من المرة السابقة! ✨✨ ---
             self.cl.direct_thread_mark_as_read(thread_id)
         except Exception as e:
             logging.error(f"Could not mark thread {thread_id} as read: {e}")
