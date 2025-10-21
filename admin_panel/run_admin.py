@@ -11,7 +11,9 @@ import base64
 import subprocess
 import threading
 import time
+import logging
 from io import BytesIO
+from urllib.parse import urlparse # <-- ✨✨✨ (1) الإضافة الأولى: نحتاج هذا للتحقق من الرابط
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, abort
 from flask_socketio import SocketIO, emit
 from functools import wraps
@@ -44,6 +46,14 @@ SETTINGS_FILE = os.path.join(BASE_DIR, "settings.json")
 LOG_FILE = os.path.join(BASE_DIR, "bot.log") # ملف السجل الذي يكتبه main.py
 ENV_FILE = find_dotenv(os.path.join(BASE_DIR, '.env')) # مسار ملف .env
 DB_FILE = DATABASE_URL.replace("sqlite:///", "") # مسار ملف قاعدة البيانات
+
+
+# --- ✨✨✨ (2) الإضافة الثانية: أضف هنا دومين موقع اختصار الروابط الخاص بك ✨✨✨ ---
+# هذا هو أهم سطر لإصلاح الثغرة. استبدل "YOUR_SHORTENER_DOMAIN.COM" بالدومين الفعلي.
+# مثال: ["ouo.io", "ouo.press"] أو ["adf.ly"]
+ALLOWED_REFERERS = ["bestcash2020.com"] 
+# --- نهاية الإضافة ---
+
 
 # --- ✨ إضافة جديدة: فلتر لتنسيق الوقت ---
 @app.template_filter('format_datetime')
@@ -576,6 +586,87 @@ def live_logs():
 @socketio.on('connect')
 def handle_connect():
     emit('status', {'msg': 'Connected to server logs.'})
+
+# --- ✨✨✨ (3) الإضافة الثالثة: تم تعديل هذا المسار بالكامل ✨✨✨ ---
+@app.route('/task/get_code')
+def get_task_code():
+    """
+    هذه هي "الصفحة السرية" الديناميكية.
+    يقوم هذا المسار بالبحث عن كود غير مستخدم وغير محجوز،
+    "يحجزه" للمستخدم، ثم يعرضه.
+    """
+    
+    # --- بداية التعديل الأمني ---
+    referer = request.headers.get("Referer")
+    
+    # 1. تحقق من وجود الـ Referer
+    if not referer:
+        logging.warning(f"Blocked request to /task/get_code. Reason: Missing Referer.")
+        # 403 Forbidden
+        return "<h1><center>Direct access is not allowed.</center></h1>", 403 
+
+    # 2. تحقق مما إذا كان الـ Referer من الدومينات المسموحة
+    try:
+        referer_domain = urlparse(referer).netloc
+        
+        # .endswith() أفضل من 'in' للتحقق من الدومينات (مثل sub.shortener.com)
+        if not any(referer_domain.endswith(allowed_domain) for allowed_domain in ALLOWED_REFERERS):
+            logging.warning(f"Blocked request to /task/get_code. Reason: Invalid Referer: {referer}")
+            return "<h1><center>Invalid referer. Access denied.</center></h1>", 403
+    except Exception as e:
+        logging.error(f"Error parsing referer: {e}")
+        return "<h1><center>An error occurred.</center></h1>", 500
+    
+    # --- نهاية التعديل الأمني ---
+
+    # إذا نجح التحقق، استمر كالمعتاد
+    db = SessionLocal()
+    try:
+        # 1. ابحث عن كود متاح (غير مستخدم وغير محجوز)
+        code = db.query(Code).filter(
+            Code.is_used == False,
+            Code.is_claimed == False
+        ).order_by(func.random()).first()
+
+        if code:
+            # 2. "احجز" هذا الكود فوراً
+            code.is_claimed = True
+            db.commit()
+            
+            # 3. اعرض الكود للمستخدم في صفحة بسيطة جداً
+            return f"""
+            <html dir="rtl" lang="ar">
+            <head>
+                <meta charset="utf-8">
+                <title>الكود الخاص بك</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <style>
+                    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: grid; place-items: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }}
+                    .card {{ background: #fff; padding: 2rem 3rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }}
+                    h1 {{ margin: 0; font-size: 1.25rem; color: #333; }}
+                    code {{ display: block; font-size: 3rem; font-weight: bold; color: #d90429; margin-top: 1rem; }}
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>هذا هو الكود الخاص بك لإكمال المهمة:</h1>
+                    <code>{code.code_value}</code>
+                </div>
+            </body>
+            </html>
+            """
+        else:
+            # 4. في حال نفاد الأكواد المتاحة
+            return "<h1>عذراً، لا توجد مهام متاحة حالياً. يرجى المحاولة لاحقاً أو إبلاغ مدير النظام.</h1>"
+            
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error in get_task_code: {e}")
+        return "<h1>حدث خطأ. الرجاء إغلاق الصفحة والمحاولة مرة أخرى.</h1>"
+    finally:
+        db.close()
+# --- نهاية الإضافة ---
+
 
 # --- ✨ تشغيل الخادم ---
 if __name__ == '__main__':

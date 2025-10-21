@@ -161,13 +161,29 @@ class BotLogic:
 
     def _verify_code(self, user, code_value, client):
         code_obj = self.db.query(Code).filter(Code.code_value == code_value).first()
-        if not code_obj or code_obj.is_used:
-            message = self.messages.get("USED_CODE_MESSAGE") if code_obj else self.messages.get("INVALID_CODE_MESSAGE")
-            client.send_direct_message(user.ig_user_id, message)
+        
+        # --- ✨✨✨ هذا هو المقطع الذي تم تعديله ✨✨✨ ---
+        
+        # 1. هل الكود موجود أصلاً؟
+        if not code_obj:
+            client.send_direct_message(user.ig_user_id, self.messages.get("INVALID_CODE_MESSAGE"))
             return
 
+        # 2. هل تم استخدام هذا الكود من قبل؟
+        if code_obj.is_used:
+            client.send_direct_message(user.ig_user_id, self.messages.get("USED_CODE_MESSAGE"))
+            return
+
+        # 3. هل هذا الكود تم "حجزه" (عرضه) من صفحة المهام؟
+        #    (هذا يمنع المستخدمين من تخمين أكواد عشوائية)
+        if not code_obj.is_claimed:
+            client.send_direct_message(user.ig_user_id, self.messages.get("INVALID_CODE_MESSAGE"))
+            return
+        
+        # --- نهاية التعديل ---
+
         points_per_task = self.settings.get("POINTS_PER_TASK", 1)
-        code_obj.is_used = True
+        code_obj.is_used = True # <-- اجعله مستخدماً الآن
         self._add_points(user, points_per_task, f"إكمال مهمة - كود {code_value}")
         user.tasks_completed += 1
         

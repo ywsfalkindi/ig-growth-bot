@@ -1,3 +1,4 @@
+# ywsfalkindi/ig-growth-bot/ig-growth-bot-1f127715a447e44d35648cc8be36c13d5a81d53b/config.py
 import os
 from dotenv import load_dotenv
 
@@ -16,8 +17,29 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 # --- إعدادات لوحة التحكم ---
-# ✨ --- هذا هو السطر الجديد الذي أضفناه --- ✨
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-# --- إعدادات قاعدة البيانات (مع المسار المطلق) ---
-DATABASE_URL = "sqlite:///" + os.path.join(BASE_DIR, "bot_data.db")
+
+# --- ✨✨✨ تعديل لإعدادات قاعدة البيانات (متوافق مع Render) ✨✨✨ ---
+
+# Render توفر مساراً ثابتاً للـ Persistent Disk
+# سنقوم بإنشاء مجلد 'data' داخل المسار الذي توفره Render
+RENDER_DISK_PATH = "/var/data/data" 
+DB_FILE_PATH = os.path.join(RENDER_DISK_PATH, "bot_data.db")
+
+# تحقق مما إذا كنا نعمل على Render (عن طريق وجود متغير RENDER)
+IS_ON_RENDER = os.getenv('RENDER') == 'true'
+
+if IS_ON_RENDER:
+    # إذا كنا على Render، تأكد من وجود المجلد
+    if not os.path.exists(RENDER_DISK_PATH):
+        os.makedirs(RENDER_DISK_PATH)
+    # استخدم المسار الثابت في الـ Disk
+    DATABASE_URL = "sqlite:///" + DB_FILE_PATH
+    print(f"Running on Render. Using Persistent Disk DB: {DATABASE_URL}")
+else:
+    # إذا كنا على الجهاز المحلي، استخدم المسار القديم
+    DATABASE_URL = "sqlite:///" + os.path.join(BASE_DIR, "bot_data.db")
+    print(f"Running locally. Using local DB: {DATABASE_URL}")
+
+# --- نهاية التعديل ---

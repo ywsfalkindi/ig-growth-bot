@@ -6,3 +6,4 @@ alembic
 flask-socketio
 eventlet
 python-dotenv
+gunicorn
