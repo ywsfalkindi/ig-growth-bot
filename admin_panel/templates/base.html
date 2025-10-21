@@ -78,6 +78,12 @@
                     <i class="bi bi-card-checklist"></i> إدارة الطلبات
                 </a>
             </li>
+            
+            <li class="nav-item">
+                <a href="{{ url_for('mass_actions') }}" class="nav-link {% if request.endpoint == 'mass_actions' %}active{% endif %}">
+                    <i class="bi bi-lightning-fill"></i> إجراءات جماعية
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{{ url_for('gift_points') }}" class="nav-link {% if request.endpoint == 'gift_points' %}active{% endif %}">
                     <i class="bi bi-gift-fill"></i> إرسال هدية
@@ -93,7 +99,8 @@
                     <i class="bi bi-patch-check-fill"></i> إدارة الأكواد
                 </a>
             </li>
-            <li class.nav-item>
+            
+            <hr> <li class.nav-item>
                 <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
                     <i class="bi bi-gear-fill"></i> الإعدادات العامة
                 </a>
@@ -109,13 +116,24 @@
                     <i class="bi bi-hdd-stack-fill"></i> الإعدادات الأساسية
                 </a>
             </li>
+            
+            <li class="nav-item">
+                <a href="{{ url_for('bot_status') }}" class="nav-link {% if request.endpoint == 'bot_status' %}active{% endif %}">
+                    <i class="bi bi-heart-pulse-fill"></i> حالة البوت
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %}">
                     <i class="bi bi-shield-lock-fill"></i> الصيانة والنسخ
                 </a>
             </li>
-
-        </ul>
+            
+            <li class="nav-item">
+                <a href="{{ url_for('admin_logs') }}" class="nav-link {% if request.endpoint == 'admin_logs' %}active{% endif %}">
+                    <i class="bi bi-journal-text"></i> سجل المدير
+                </a>
+            </li>
+            </ul>
         <hr>
         <div class="text-center">
             <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100">

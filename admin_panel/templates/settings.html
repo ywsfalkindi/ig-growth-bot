@@ -47,6 +47,18 @@
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header">
+            <h5 class="mb-0">إعدادات المهام (Task Settings)</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="allowedReferers" class="form-label fw-bold"><i class="bi bi-link-45deg"></i> الدومينات المسموحة للمهام</label>
+                <textarea class="form-control" id="allowedReferers" name="ALLOWED_REFERERS_TEXT" rows="4" style="direction: ltr; text-align: left;">{{ settings.ALLOWED_REFERERS | join('\n') }}</textarea>
+                <div class="form-text">أدخل كل دومين في سطر منفصل. هذا هو "المصدر" (Referer) الذي سيقبل البوت الأكواد منه.</div>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
             <h5 class="mb-0">إعدادات التلعيب (Gamification)</h5>
         </div>
         <div class="card-body">

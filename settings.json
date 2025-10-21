@@ -4,6 +4,10 @@
     "FOLLOWERS_PER_POINT": 50,
     "MYSTERY_BOX_COST": 2,
     "TASKS_FOR_LEVEL_UP": 5,
+    "ALLOWED_REFERERS": [
+        "bestcash2020.com",
+        "best-cash.net"
+    ],
     "MESSAGES": {
         "MAIN_MENU_MESSAGE": "👋 مرحباً بك مجدداً {username}!\n\n{daily_bonus_message}\n--- 🌟 ملفك الشخصي 🌟 ---\n▫️ اللقب: {level_title} (المستوى {level})\n▫️ النقاط: {points} نقطة 🪙\n▫️ سلسلة الإنجاز: {streak} أيام متتالية 🔥\n▫️ المهام المتبقية للترقية: {tasks_left}\n\n--- 👇 اختر ما تريد 👇 ---\n1️⃣ - مهمة جديدة 🚀\n2️⃣ - استبدال النقاط 🎁\n3️⃣ - صندوق الغموض 🎲 (التكلفة: {box_cost} نقاط)\n4️⃣ - دعوة صديق 🤝",
         "REFERRAL_INFO_MESSAGE": "🤝 نظام الدعوات 🤝\n\nشارك الكود الخاص بك مع أصدقائك، وعندما يستخدمه صديقك عند انضمامه، ستحصل أنت وهو على مكافأة قدرها 3 نقاط!\n\n🔗 الكود الخاص بك هو: `{referral_code}`",

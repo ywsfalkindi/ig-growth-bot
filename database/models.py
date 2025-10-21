@@ -26,10 +26,7 @@ class Code(Base):
     id = Column(Integer, primary_key=True, index=True)
     code_value = Column(String, unique=True, index=True)
     is_used = Column(Boolean, default=False)
-    
-    # --- ✨✨✨ هذا هو السطر الجديد ✨✨✨ ---
     is_claimed = Column(Boolean, default=False, index=True)
-    # --- نهاية الإضافة ---
 
 class Order(Base):
     __tablename__ = "orders"
@@ -51,3 +48,16 @@ class PointLog(Base):
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     
     user = relationship("User", back_populates="point_logs")
+
+# --- ✨✨✨ الإضافة الجديدة: جدول سجل مراقبة المدير ✨✨✨ ---
+class AdminLog(Base):
+    __tablename__ = "admin_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    # (يمكن إضافة admin_username لاحقاً إذا كان لديك نظام تعدد مديرين)
+    action = Column(String, nullable=False) # e.g., "ban_user", "gift_points"
+    target_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reason = Column(String, nullable=True) # e.g., "Ban for spam", "Gave 100 points"
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    target_user = relationship("User")
+# --- نهاية الإضافة ---

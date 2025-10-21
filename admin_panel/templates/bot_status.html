@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-heart-pulse-fill"></i> حالة صحة البوت</h2>
+
+<div class="card {% if status.online %}border-success{% else %}border-danger{% endif %} mb-4">
+    <div class="card-header {% if status.online %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+        <h5 class="mb-0">
+            {% if status.online %}
+                <i class="bi bi-check-circle-fill"></i> متصل ويعمل
+            {% else %}
+                <i class="bi bi-exclamation-triangle-fill"></i> غير متصل أو يواجه مشكلة
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="fs-5">{{ status.message }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">إدارة الجلسة (Session)</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>حالة ملف الجلسة (session.json):</strong>
+            {% if status.session_exists %}
+                <span class="badge bg-success">موجود</span>
+            {% else %}
+                <span class="badge bg-secondary">غير موجود</span>
+            {% endif %}
+        </p>
+        <p>إذا كان البوت يواجه مشكلة "LoginRequired" (انتهاء الجلسة)، يمكنك محاولة حذف ملف الجلسة الحالي. سيقوم البوت بإنشاء ملف جديد عند إعادة تشغيله.</p>
+        
+        <form action="{{ url_for('delete_session') }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف ملف الجلسة؟ سيحتاج البوت لإعادة تسجيل الدخول.');">
+            <button type="submit" class="btn btn-warning"><i class="bi bi-trash-fill"></i> حذف ملف الجلسة (session.json)</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

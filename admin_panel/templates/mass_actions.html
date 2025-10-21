@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-lightning-fill"></i> إجراءات جماعية</h2>
+
+<div class="alert alert-danger d-flex align-items-center">
+    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+    <div>
+        <h5 class="alert-heading">تحذير خطير!</h5>
+        <p class="mb-0">هذه الإجراءات لا يمكن التراجع عنها وتؤثر على عدد كبير من المستخدمين. استخدمها بحذر.</p>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-gift-fill text-success"></i> إرسال هدية جماعية (لغير المحظورين)</h5></div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="action" value="gift_all">
+            <div class="mb-3">
+                <label class="form-label fw-bold">النقاط:</label>
+                <input type="number" name="points" class="form-control" required placeholder="e.g., 5 or -2">
+                <div class="form-text">أدخل رقماً موجباً للإضافة أو سالباً للخصم.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">السبب:</label>
+                <input type="text" name="reason" class="form-control" value="هدية جماعية من المدير">
+            </div>
+            <button type="submit" class="btn btn-success" onclick="return confirm('هل أنت متأكد من إرسال هذه النقاط لجميع المستخدمين النشطين؟');">
+                <i class="bi bi-send-fill"></i> إرسال للجميع
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-header"><h5 class="mb-0"><i class="bi bi-slash-circle-fill text-danger"></i> حظر المستخدمين (بمعايير)</h5></div>
+    <div class="card-body">
+        <form method="post" onsubmit="return confirm('هل أنت متأكد من حظر كل المستخدمين الذين لم يكملوا أي مهمة؟');">
+            <input type="hidden" name="action" value="ban_no_tasks">
+            <p>حظر جميع المستخدمين الذين يملكون <strong>0 مهام مكتملة</strong> (المستخدمون الذين انضموا ولم يتفاعلوا).</p>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-gavel"></i> حظر المستخدمين غير النشطين
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
