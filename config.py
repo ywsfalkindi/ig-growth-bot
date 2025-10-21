@@ -1,5 +1,4 @@
 # ywsfalkindi/ig-growth-bot/ig-growth-bot-1f127715a447e44d35648cc8be36c13d5a81d53b/config.py
-
 import os
 from dotenv import load_dotenv
 
@@ -21,24 +20,20 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 
-# --- ✨✨✨ تعديل لإعدادات قاعدة البيانات (متوافق مع Render) ✨✨✨ ---
+# --- ✨✨✨ تعديل لإعدادات قاعدة البيانات (متوافق مع Render PostgreSQL) ✨✨✨ ---
 
-# هذا هو المسار الذي قمت بإعداده في Render
-RENDER_DISK_MOUNT_PATH = "/var/data" 
-# سنضع قاعدة البيانات مباشرة في هذا المسار
-DB_FILE_PATH = os.path.join(RENDER_DISK_MOUNT_PATH, "bot_data.db") 
-
-# تحقق مما إذا كنا نعمل على Render (عن طريق وجود متغير RENDER)
+# Render ستقوم بتوفير متغير بيئة يسمى DATABASE_URL تلقائيًا
+# عند ربط قاعدة البيانات بالخدمات.
+# إذا لم تجده (أي أننا نشغل الكود محلياً)، سنستخدم ملف SQLite المحلي كالمعتاد.
 IS_ON_RENDER = os.getenv('RENDER') == 'true'
 
 if IS_ON_RENDER:
-    # إذا كنا على Render، استخدم المسار الثابت في الـ Disk
-    # لا نحتاج لإنشاء مجلدات، لأن /var/data موجود ومضمون من Render
-    DATABASE_URL = "sqlite:///" + DB_FILE_PATH
-    print(f"Running on Render. Using Persistent Disk DB: {DATABASE_URL}")
+    # على سيرفر Render، استخدم الرابط الذي يوفره السيرفر
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    print("Running on Render. Using PostgreSQL.")
 else:
-    # إذا كنا على الجهاز المحلي، استخدم المسار القديم
+    # على الجهاز المحلي، استخدم ملف SQLite
     DATABASE_URL = "sqlite:///" + os.path.join(BASE_DIR, "bot_data.db")
-    print(f"Running locally. Using local DB: {DATABASE_URL}")
+    print(f"Running locally. Using local SQLite DB.")
 
 # --- نهاية التعديل ---

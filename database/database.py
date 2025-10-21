@@ -9,7 +9,7 @@ from config import DATABASE_URL
 # هذا المحرك هو نقطة الدخول الأساسية لقاعدة البيانات
 # connect_args مهم بشكل خاص لـ SQLite للسماح بالاتصال من مسارات متعددة
 engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL
 )
 
 # الخطوة 2: إنشاء "صانع جلسات"
